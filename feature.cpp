@@ -1477,8 +1477,8 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 		ss << ++feature_index << ":" << time_stamp - login_list[before_index].time_stamp << " ";
 		ss << ++feature_index << ":" << login.time_stamp - login_list[before_index].time_stamp << " ";
 //
-		//ss << ++feature_index << ":" << login.time_long - login_list[before_index].time_long << " ";
-		ss << ++feature_index << ":" << max_time_long + login.time_long - login_list[before_index].time_long << " ";
+		ss << ++feature_index << ":" << login.time_long - login_list[before_index].time_long << " ";
+		//ss << ++feature_index << ":" << max_time_long + login.time_long - login_list[before_index].time_long << " ";
 //103
 
 		map<string, int> log_device_info;
@@ -1740,8 +1740,8 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 		ss << ++feature_index << ":" << time_stamp - login_list[before_index - 1].time_stamp << " ";
 
 		ss << ++feature_index << ":" << login.time_stamp - login_list[before_index - 1].time_stamp << " ";
-		ss << ++feature_index << ":" << max_time_long + login.time_long - login_list[before_index - 1].time_long << " ";
-		//ss << ++feature_index << ":" << login.time_long - login_list[before_index - 1].time_long << " ";
+		//ss << ++feature_index << ":" << max_time_long + login.time_long - login_list[before_index - 1].time_long << " ";
+		ss << ++feature_index << ":" << login.time_long - login_list[before_index - 1].time_long << " ";
 	}else {
 		feature_index += 9;
 	}
