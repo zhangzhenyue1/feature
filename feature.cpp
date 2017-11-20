@@ -1222,7 +1222,8 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 			}
 		}
 		ss << ++feature_index << ":" << cnt << " ";
-	}
+	} else
+		feature_index += 4;
 /*	if(black_total_device_map.find(login.device) != black_total_device_map.end()) {
 		map<string, int> tmp = black_total_device_map.at(login.device);
 		if(tmp.find(user_id) != tmp.end() && tmp.find("sum") != tmp.end()) {
