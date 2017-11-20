@@ -1466,7 +1466,6 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 		}else
 			++feature_index;
 
-
 		if(login_list[before_index].result == login.result) {
 			ss << ++feature_index << ":1" << " ";
 		}else
@@ -1610,6 +1609,7 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 		else
 			++feature_index;
 //115
+
 		ss << ++feature_index << ":" << sum_login << " ";
 		ss << ++feature_index << ":" << sum_trade << " ";
 		ss << ++feature_index << ":" << login_cnt << " ";
@@ -1706,7 +1706,6 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	}else {
 		feature_index += 32;
 	}
-	//cout << feature_index << " ";
 
 	if(before_index > 1) {
 		if(login_list[before_index - 1].device == login.device) {
@@ -1977,6 +1976,7 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 			case1_neg++;
 		}
 		train_out_file << ss.str() << endl;
+		valid_out_file << ss.str() << endl;
 	} else if(time_stamp > 1433260800L && time_stamp < 1434124800L){
 		if(label)
 			test_pos++;
@@ -1984,6 +1984,7 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 			test_neg++;
 		ss << "0:" << current.row_key << " ";
 		test_out_file << ss.str() << endl;
+		valid_out_file << ss.str() << endl;
 	} else if(time_stamp > 1434729600L && time_stamp < 1435680000L){
 		if(label)
 			valid_pos++;
@@ -2092,6 +2093,7 @@ bool generate_zero(trade_data data, int index, vector<trade_data> trade_list) {
 			case2_neg++;
 		}
 		train_out_file << ss.str() << endl;
+		valid_out_file << ss.str() << endl;
 	} else if(time_stamp > 1433260800L && time_stamp < 1434124800L){
 		if(label)
 			test_pos++;
@@ -2099,6 +2101,7 @@ bool generate_zero(trade_data data, int index, vector<trade_data> trade_list) {
 			test_neg++;
 		ss << "0:" << data.row_key << " ";
 		test_out_file << ss.str() << endl;
+		valid_out_file << ss.str() << endl;
 	} else if(time_stamp > 1434729600L && time_stamp < 1435680000L){
 		if(label)
 			valid_pos++;
