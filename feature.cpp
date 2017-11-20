@@ -1078,17 +1078,22 @@ bool update_history_black(login_data data) {
 void get_max_min_avg(stringstream& ss, int& feature_index, vector<double> data) {
 	double max = 0;
 	double min = 17280000.0;
-	double avg = 0;
+	double avg = 0.0;
+	int cnt = 0;
 
 	for(int i = 0; i < data.size(); i++) {
 		//cout << data[i] << endl;
+		if(data[i] < 10)
+			continue;
 		if(max < data[i])
 			max = data[i];
 		if(min > data[i])
 			min = data[i];
 		avg += data[i];
+		cnt++;
 	}
-	avg = avg/data.size();
+	if(cnt)
+		avg = avg/cnt;
 
 	ss << ++feature_index << ":" << max << " ";
 	ss << ++feature_index << ":" << min << " ";
@@ -1198,17 +1203,37 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	// 	feature_index += 2;
 	// }
 
-	// if(black_total_device_map.find(login.device) != black_total_device_map.end()) {
-	// 	map<string, int> tmp = black_total_device_map.at(login.device);
-	// 	if(tmp.find(user_id) != tmp.end() && tmp.find("sum") != tmp.end()) {
-	// 		ss << ++feature_index << ":" << tmp.at(user_id) << " ";
-	// 		ss << ++feature_index << ":" << tmp.at(user_id)*1.0/tmp.at("sum") << " ";
-	// 	}
-	// }else{
-	// 	feature_index += 2;
-	// }
-//
-/*	if(black_total_ip_map.find(login.ip) != black_total_ip_map.end()) {
+	if(index > 0) {
+		int cnt = 0;
+		for(int id = 0; id < index; id++) {
+			if(black_total_device_map.find(login_list[id].device) != black_total_device_map.end()) {
+				map<string, int> tmp = black_total_device_map.at(login_list[id].device);
+				if(cnt < tmp.at("sum"))
+					cnt = tmp.at("sum");
+			}
+		}
+		ss << ++feature_index << ":" << cnt << " ";
+		cnt = 0;
+		for(int id = 0; id < index; id++) {
+			if(black_total_ip_map.find(login_list[id].ip) != black_total_ip_map.end()) {
+				map<string, int> tmp = black_total_ip_map.at(login_list[id].ip);
+				if(cnt < tmp.at("sum"))
+					cnt = tmp.at("sum");
+			}
+		}
+		ss << ++feature_index << ":" << cnt << " ";
+	}
+/*	if(black_total_device_map.find(login.device) != black_total_device_map.end()) {
+		map<string, int> tmp = black_total_device_map.at(login.device);
+		if(tmp.find(user_id) != tmp.end() && tmp.find("sum") != tmp.end()) {
+			ss << ++feature_index << ":" << tmp.at(user_id) << " ";
+			ss << ++feature_index << ":" << tmp.at(user_id)*1.0/tmp.at("sum") << " ";
+		}
+	}else{
+		feature_index += 2;
+	}
+
+	if(black_total_ip_map.find(login.ip) != black_total_ip_map.end()) {
 		map<string, int> tmp = black_total_ip_map.at(login.ip);
 		if(tmp.find(user_id) != tmp.end() && tmp.find("sum") != tmp.end()) {
 			ss << ++feature_index << ":" << tmp.at(user_id) << " ";
