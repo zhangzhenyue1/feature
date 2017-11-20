@@ -1130,40 +1130,44 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 		map<string, int> tmp = device_user_map.at(login.device);
 		if(tmp.find(user_id) != tmp.end() && tmp.find("sum") != tmp.end()) {
 			ss << ++feature_index << ":" << tmp.at(user_id) << " ";
+			ss << ++feature_index << ":" << tmp.size() << " ";
 			ss << ++feature_index << ":" << tmp.at(user_id)*1.0/tmp.at("sum") << " ";
 		}
 	}else{
-		feature_index += 2;
+		feature_index += 3;
 	}
 	if(ip_user_map.find(login.ip) != ip_user_map.end()) {
 		map<string, int> tmp = ip_user_map.at(login.ip);
 		if(tmp.find(user_id) != tmp.end() && tmp.find("sum") != tmp.end()) {
 			ss << ++feature_index << ":" << tmp.at(user_id) << " ";
+			ss << ++feature_index << ":" << tmp.size() << " ";
 			ss << ++feature_index << ":" << tmp.at(user_id)*1.0/tmp.at("sum") << " ";
 		}
 	}else{
-		feature_index += 2;
+		feature_index += 3;
 	}
 
 	if(total_device_map.find(login.device) != total_device_map.end()) {
 		map<string, int> tmp = total_device_map.at(login.device);
 		if(tmp.find(user_id) != tmp.end() && tmp.find("sum") != tmp.end()) {
 			ss << ++feature_index << ":" << tmp.at(user_id) << " ";
+			ss << ++feature_index << ":" << tmp.size() << " ";
 			ss << ++feature_index << ":" << tmp.at(user_id)*1.0/tmp.at("sum") << " ";
 		}
 	}else{
-		feature_index += 2;
+		feature_index += 3;
 	}
 	if(total_ip_map.find(login.ip) != total_ip_map.end()) {
 		map<string, int> tmp = total_ip_map.at(login.ip);
 		if(tmp.find(user_id) != tmp.end() && tmp.find("sum") != tmp.end()) {
 			ss << ++feature_index << ":" << tmp.at(user_id) << " ";
+			ss << ++feature_index << ":" << tmp.size() << " ";
 			ss << ++feature_index << ":" << tmp.at(user_id)*1.0/tmp.at("sum") << " ";
 		}
 	}else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-//27
+//31
 
 	// if(trade_total_device_map.find(login.device) != trade_total_device_map.end()) {
 	// 	map<string, int> tmp = trade_total_device_map.at(login.device);
@@ -1223,7 +1227,9 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 		}
 		ss << ++feature_index << ":" << cnt << " ";
 	} else
-		feature_index += 4;
+		feature_index += 2;
+//33
+
 /*	if(black_total_device_map.find(login.device) != black_total_device_map.end()) {
 		map<string, int> tmp = black_total_device_map.at(login.device);
 		if(tmp.find(user_id) != tmp.end() && tmp.find("sum") != tmp.end()) {
@@ -1247,178 +1253,186 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 
 	if(device_map.find(login.device) != device_map.end()) {
 		ss << ++feature_index << ":" << device_map.at(login.device) << " ";
+		ss << ++feature_index << ":" << device_map.size() << " ";
 		ss << ++feature_index << ":" << device_map.at(login.device)*1.0/(device_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
+
 	if(ip_map.find(login.ip) != ip_map.end()) {
 		ss << ++feature_index << ":" << ip_map.at(login.ip) << " ";
+		ss << ++feature_index << ":" << ip_map.size() << " ";
 		ss << ++feature_index << ":" << ip_map.at(login.ip)*1.0/(ip_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
 
 	if(city_map.find(login.city) != city_map.end()) {
 		ss << ++feature_index << ":" << city_map.at(login.city) << " ";
+		ss << ++feature_index << ":" << city_map.size() << " ";
 		ss << ++feature_index << ":" << city_map.at(login.city)*1.0/(city_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
+
 	if(type_map.find(login.type) != type_map.end()) {
 		ss << ++feature_index << ":" << type_map.at(login.type) << " ";
+		ss << ++feature_index << ":" << type_map.size() << " ";
 		ss << ++feature_index << ":" << type_map.at(login.type)*1.0/(type_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-//
-	//cout << feature_index << " ";
+
 	if(log_from_map.find(login.log_from) != log_from_map.end()) {
 		ss << ++feature_index << ":" << log_from_map.at(login.log_from) << " ";
+		ss << ++feature_index << ":" << log_from_map.size() << " ";
 		ss << ++feature_index << ":" << log_from_map.at(login.log_from)*1.0/(log_from_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-//37
-	//cout << feature_index << " ";
+//48
+
 	if(trade_device_map.find(login.device) != trade_device_map.end()) {
 		ss << ++feature_index << ":" << trade_device_map.at(login.device) << " ";
+		ss << ++feature_index << ":" << trade_device_map.size() << " ";
 		ss << ++feature_index << ":" << trade_device_map.at(login.device)*1.0/(trade_device_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
+
 	if(trade_ip_map.find(login.ip) != trade_ip_map.end()) {
 		ss << ++feature_index << ":" << trade_ip_map.at(login.ip) << " ";
+		ss << ++feature_index << ":" << trade_ip_map.size() << " ";
 		ss << ++feature_index << ":" << trade_ip_map.at(login.ip)*1.0/(trade_ip_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
-
 
 	if(trade_city_map.find(login.city) != trade_city_map.end()) {
 		ss << ++feature_index << ":" << trade_city_map.at(login.city) << " ";
+		ss << ++feature_index << ":" << trade_city_map.size() << " ";
 		ss << ++feature_index << ":" << trade_city_map.at(login.city)*1.0/(trade_city_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
+
 	if(trade_type_map.find(login.type) != trade_type_map.end()) {
 		ss << ++feature_index << ":" << trade_type_map.at(login.type) << " ";
+		ss << ++feature_index << ":" << trade_type_map.size() << " ";
 		ss << ++feature_index << ":" << trade_type_map.at(login.type)*1.0/(trade_type_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-//
-	//cout << feature_index << " ";
+
 	if(trade_log_from_map.find(login.log_from) != trade_log_from_map.end()) {
 		ss << ++feature_index << ":" << trade_log_from_map.at(login.log_from) << " ";
+		ss << ++feature_index << ":" << trade_log_from_map.size() << " ";
 		ss << ++feature_index << ":" << trade_log_from_map.at(login.log_from)*1.0/(trade_log_from_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-//47
-	//cout << feature_index << " ";
+//63
 	if(valid_device_map.find(login.device) != valid_device_map.end()) {
 		ss << ++feature_index << ":" << valid_device_map.at(login.device) << " ";
+		ss << ++feature_index << ":" << valid_device_map.size() << " ";
 		ss << ++feature_index << ":" << valid_device_map.at(login.device)*1.0/(valid_device_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
+
 	if(valid_ip_map.find(login.ip) != valid_ip_map.end()) {
 		ss << ++feature_index << ":" << valid_ip_map.at(login.ip) << " ";
+		ss << ++feature_index << ":" << valid_ip_map.size() << " ";
 		ss << ++feature_index << ":" << valid_ip_map.at(login.ip)*1.0/(valid_ip_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
-
 
 	if(valid_city_map.find(login.city) != valid_city_map.end()) {
 		ss << ++feature_index << ":" << valid_city_map.at(login.city) << " ";
+		ss << ++feature_index << ":" << valid_city_map.size() << " ";
 		ss << ++feature_index << ":" << valid_city_map.at(login.city)*1.0/(valid_city_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
+
 	if(valid_type_map.find(login.type) != valid_type_map.end()) {
 		ss << ++feature_index << ":" << valid_type_map.at(login.type) << " ";
+		ss << ++feature_index << ":" << valid_type_map.size() << " ";
 		ss << ++feature_index << ":" << valid_type_map.at(login.type)*1.0/(valid_type_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-//
-	//cout << feature_index << " ";
+
 	if(valid_log_from_map.find(login.log_from) != valid_log_from_map.end()) {
 		ss << ++feature_index << ":" << valid_log_from_map.at(login.log_from) << " ";
+		ss << ++feature_index << ":" << valid_log_from_map.size() << " ";
 		ss << ++feature_index << ":" << valid_log_from_map.at(login.log_from)*1.0/(valid_log_from_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-//57
-	//cout << feature_index << " ";
+//78
+
 	if(black_device_map.find(login.device) != black_device_map.end()) {
 		ss << ++feature_index << ":" << black_device_map.at(login.device) << " ";
+		ss << ++feature_index << ":" << black_device_map.size() << " ";
 		ss << ++feature_index << ":" << black_device_map.at(login.device)*1.0/(black_device_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
+
 	if(black_ip_map.find(login.ip) != black_ip_map.end()) {
 		ss << ++feature_index << ":" << black_ip_map.at(login.ip) << " ";
+		ss << ++feature_index << ":" << black_ip_map.size() << " ";
 		ss << ++feature_index << ":" << black_ip_map.at(login.ip)*1.0/(black_ip_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
-
 
 	if(black_city_map.find(login.city) != black_city_map.end()) {
 		ss << ++feature_index << ":" << black_city_map.at(login.city) << " ";
+		ss << ++feature_index << ":" << black_city_map.size() << " ";
 		ss << ++feature_index << ":" << black_city_map.at(login.city)*1.0/(black_city_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-	//cout << feature_index << " ";
+
 	if(black_type_map.find(login.type) != black_type_map.end()) {
 		ss << ++feature_index << ":" << black_type_map.at(login.type) << " ";
+		ss << ++feature_index << ":" << black_type_map.size() << " ";
 		ss << ++feature_index << ":" << black_type_map.at(login.type)*1.0/(black_type_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-//
-	//cout << feature_index << " ";
+
 	if(black_log_from_map.find(login.log_from) != black_log_from_map.end()) {
 		ss << ++feature_index << ":" << black_log_from_map.at(login.log_from) << " ";
+		ss << ++feature_index << ":" << black_log_from_map.size() << " ";
 		ss << ++feature_index << ":" << black_log_from_map.at(login.log_from)*1.0/(black_log_from_map.at("sum")) << " ";
 	}
 	else{
-		feature_index += 2;
+		feature_index += 3;
 	}
-//67
+//93
 	int before_index = index -1;
 	if(index>0) {
 		for(; before_index > 0; before_index--) {
@@ -1462,20 +1476,11 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 		}else
 			++feature_index;
 		ss << ++feature_index << ":" << time_stamp - login_list[before_index].time_stamp << " ";
-//
 		ss << ++feature_index << ":" << login.time_stamp - login_list[before_index].time_stamp << " ";
 //
 		//ss << ++feature_index << ":" << login.time_long - login_list[before_index].time_long << " ";
 		ss << ++feature_index << ":" << max_time_long + login.time_long - login_list[before_index].time_long << " ";
-//77
-		//ss << ++feature_index << ":" << login.is_scan - login_list[before_index].is_scan << " ";
-
-		//ss << ++feature_index << ":" << login.is_sec - login_list[before_index].is_sec << " ";
-		//ss << ++feature_index << ":" << (login.device == login_list[before_index].device) << " ";
-		//ss << ++feature_index << ":" << (login.ip == login_list[before_index].ip) << " ";
-		//ss << ++feature_index << ":" << (login.city == login_list[before_index].city) << " ";
-
-		//ss << ++feature_index << ":" << (login.type == login_list[before_index].type) << " ";
+//103
 
 		map<string, int> log_device_info;
 		map<string, int> log_ip_info;
@@ -1604,7 +1609,7 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 			ss << ++feature_index << ":" << trade_city_info.at(login_list[index].city)*1.0/sum_trade << " ";
 		else
 			++feature_index;
-//89
+//115
 		ss << ++feature_index << ":" << sum_login << " ";
 		ss << ++feature_index << ":" << sum_trade << " ";
 		ss << ++feature_index << ":" << login_cnt << " ";
@@ -1614,12 +1619,11 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 		ss << ++feature_index << ":" << ip_time_diff << " ";
 		ss << ++feature_index << ":" << city_time_diff << " ";
 
-		//cout << "debug " << time_diff.size() << endl;
 		if(time_diff.size() > 0)
 			get_max_min_avg(ss, feature_index, time_diff);
 		else
 			feature_index += 3;
-//99
+//125
 /*
 		for(map<string, int>::iterator map_it = trade_device_info.begin();
 			map_it != trade_device_info.end(); map_it++) {
@@ -1739,22 +1743,10 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 		ss << ++feature_index << ":" << login.time_stamp - login_list[before_index - 1].time_stamp << " ";
 		ss << ++feature_index << ":" << max_time_long + login.time_long - login_list[before_index - 1].time_long << " ";
 		//ss << ++feature_index << ":" << login.time_long - login_list[before_index - 1].time_long << " ";
-		
-		//ss << ++feature_index << ":" << login.is_scan - login_list[before_index - 1].is_scan << " ";
-		//ss << ++feature_index << ":" << login.is_sec - login_list[before_index - 1].is_sec << " ";
-
-
-		//ss << ++feature_index << ":" << (login.device == login_list[before_index - 1].device) << " ";
-		//ss << ++feature_index << ":" << (login.ip == login_list[before_index - 1].ip) << " ";
-		//ss << ++feature_index << ":" << (login.city == login_list[before_index - 1].city) << " ";
-
-		//ss << ++feature_index << ":" << (login.type == login_list[before_index - 1].type) << " ";
-//
 	}else {
 		feature_index += 9;
 	}
-//108
-	//cout << "feature index " << feature_index << endl;
+//134
 	if(trade_size > 1) {
 		ss << ++feature_index << ":" << 
 		(login.trade_vec[trade_size - 1].time_stamp - login.trade_vec[trade_size - 2].time_stamp) << " ";
@@ -1781,7 +1773,7 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	}else {
 		feature_index += 5;
 	}
-//111
+//139
 	if(index > 0) {
 		long time_diff = 0;
 		int con_login_cnt = 0;
@@ -1879,7 +1871,7 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 		feature_index += 9;
 	}
 
-//122
+//148
 	int log_from_index = (discrete_map.at("log_from")).at(login.log_from);//11
 	ss << 1 + log_from_index + feature_index << ":1" << " ";
 	feature_index += (discrete_map.at("log_from")).size();
@@ -2293,6 +2285,9 @@ bool transfer_data2() {
 	map<string, int> user_trade_cnt_map;
 	long last_time_stamp = 0;
 	set<login_data>::iterator trade_login_it = total_login_map.begin();
+	vector<login_data> black_trade_login_info;
+	vector<login_data> valid_trade_login_info;
+	int black_id = 0, valid_id = 0;
 	for(set<trade_data>::iterator total_trade_it = total_trade_map.begin(); 
 				total_trade_it != total_trade_map.end(); ++total_trade_it) {
 		trade_data current = *total_trade_it;
@@ -2310,21 +2305,29 @@ bool transfer_data2() {
 			}
 		}
 
-/*		for(; trade_login_it != total_login_map.end(); trade_login_it++) {
-			if((*trade_login_it).time_stamp < current.time_stamp - 3600*24*30) {
-				for(int j = 0; j < (*trade_login_it).trade_vec.size(); j++) {
-					if((*trade_login_it).trade_vec[j].label == 0) {
-						update_valid_total_device_map(*trade_login_it, (*trade_login_it).user_id);
-						update_valid_total_ip_map(*trade_login_it, (*trade_login_it).user_id);
-					}else if((*trade_login_it).trade_vec[j].label == 1) {
-						update_black_total_device_map(*trade_login_it, (*trade_login_it).user_id);
-						update_black_total_ip_map(*trade_login_it, (*trade_login_it).user_id);
-					}
-				}
-			}else {
-				break;
+		if(black_id < black_trade_login_info.size()) {
+			for(; black_id < black_trade_login_info.size(); black_id++) {
+				if(current.time_stamp - black_trade_login_info[black_id].time_stamp > 3600*24*30) {
+					update_black_total_device_map(black_trade_login_info[black_id], 
+						black_trade_login_info[black_id].user_id);
+					update_black_total_ip_map(black_trade_login_info[black_id], 
+						black_trade_login_info[black_id].user_id);
+				}else
+					break;
 			}
-		}*/
+		}
+
+		if(valid_id < valid_trade_login_info.size()) {
+			for(; valid_id < valid_trade_login_info.size(); valid_id++) {
+				if(current.time_stamp - valid_trade_login_info[valid_id].time_stamp > 3600*24*30) {
+					update_valid_total_device_map(valid_trade_login_info[valid_id], 
+						valid_trade_login_info[valid_id].user_id);
+					update_valid_total_ip_map(valid_trade_login_info[valid_id], 
+						valid_trade_login_info[valid_id].user_id);
+				}else
+					break;
+			}
+		}
 
 		vector<trade_data> trade_list = trade_vec.at(user_id);
 		int trade_index = 0;
@@ -2347,6 +2350,10 @@ bool transfer_data2() {
 		clear_history_map();
 		int index = 0;
 		int login_index = 0;
+		//for(; login_index < login_list.size(); login_index++) {
+		//	update_history_login(login_list[login_index]);
+		//}
+		login_index = 0;
 		for(; login_index < login_list.size(); login_index++) {
 			if(login_list[login_index].time_stamp > current.time_stamp)
 				break;
@@ -2384,6 +2391,10 @@ bool transfer_data2() {
 			}
 		}
 		generate_sample(login_list, login_index - 1, index, user_id);
+		if(current.label)
+			valid_trade_login_info.push_back(login_list[index]);
+		else
+			black_trade_login_info.push_back(login_list[index]);
 		size_num++;
 		//update_trade_total_device_map(login_list[index], login_list[index].user_id);
 		//update_trade_total_ip_map(login_list[index], login_list[index].user_id);
