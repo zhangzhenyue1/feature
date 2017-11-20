@@ -1732,7 +1732,7 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 			ss << ++feature_index << ":1" << " ";
 		}else
 			++feature_index;
-//
+
 		if(login_list[before_index - 1].type == login.type) {
 			ss << ++feature_index << ":1" << " ";
 		}else
