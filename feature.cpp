@@ -1099,6 +1099,7 @@ void get_max_min_avg(stringstream& ss, int& feature_index, vector<double> data) 
 	ss << ++feature_index << ":" << avg << " ";
 }
 
+
 bool generate_sample(vector<login_data> login_list, int i, int index, string user_id) {
 	stringstream ss;
 	
