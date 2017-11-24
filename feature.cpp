@@ -742,23 +742,26 @@ bool load_login_data(string login_path) {
 		cout << "total login user " << login_info.size()  
 			<< ", times " << line_num  << endl;
 	}
+	int login_total_cnt = 0;
 	for(map<string, set<login_data> >::iterator it = login_info.begin(); it != login_info.end(); it++) {
 		set<login_data> login_tmp = it->second;
+		login_total_cnt += login_tmp.size();
 		set<login_data> new_login;
 		login_data last_data;
 		last_data.time_stamp = 0;
 		for(set<login_data>::iterator set_it = login_tmp.begin(); set_it != login_tmp.end(); set_it++) {
 			login_data data = (*set_it);
-			if(!(last_data == data)) {
-				update_discrete_map(data, data.user_id);
-				new_login.insert(data);
-			}
+			//if(!(last_data == data)) {
+			update_discrete_map(data, data.user_id);
+			//new_login.insert(data);
+			//}
 			last_data = data;
 		}
 	}
 	if(DEBUG_TEST) {
 		cout << "total login data " << login_info.at(test_user).size() << endl;
 	}
+	cout << "total login size " << login_total_cnt << endl;
 	max_time_long = max_time_long/1000;
 	return true;
 }
@@ -1786,9 +1789,11 @@ void update_user_history_login_info2(stringstream& ss, int feature_index, vector
 	long time_stamp = current.time_stamp;
 
 	if(index > 0) {
-		long time_diff = 0;
+		long max_time_diff = 0;
+		long min_time_diff = 0;
 		int con_login_cnt = 0;
 		for(int id = index-1; id >= 0; id--) {
+			//if(index - id > 5) {
 			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
 				continue;
 			}
@@ -1796,19 +1801,23 @@ void update_user_history_login_info2(stringstream& ss, int feature_index, vector
 				&& login_list[index].ip == login_list[id].ip
 				&& login_list[index].city == login_list[id].city
 				&& login_list[index].result == login_list[id].result) {
-				if(time_diff <= 0)
-					time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				if(max_time_diff <= 0)
+					max_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				min_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
 				con_login_cnt++;
 			}else {
 				break;
 			}
 		}
-		ss << ++feature_index << ":" << log(time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << con_login_cnt << " ";
 
-		time_diff = 0;
+		max_time_diff = 0;
+		min_time_diff = 0;
 		con_login_cnt = 0;
 		for(int id = index-1; id >= 0; id--) {
+			//if(index - id > 5) {
 			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
 				continue;
 			}
@@ -1816,19 +1825,23 @@ void update_user_history_login_info2(stringstream& ss, int feature_index, vector
 				&& login_list[index].ip == login_list[id].ip
 				&& login_list[index].city == login_list[id].city
 				&& login_list[index].result != login_list[id].result) {
-				if(time_diff <= 0)
-					time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				if(max_time_diff <= 0)
+					max_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				min_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
 				con_login_cnt++;
 			}else {
 				break;
 			}
 		}
-		ss << ++feature_index << ":" << log(time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << con_login_cnt << " ";
 
-		time_diff = 0;
+		max_time_diff = 0;
+		min_time_diff = 0;
 		con_login_cnt = 0;
 		for(int id = index-1; id >= 0; id--) {
+			//if(index - id > 5) {
 			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
 				continue;
 			}
@@ -1836,19 +1849,23 @@ void update_user_history_login_info2(stringstream& ss, int feature_index, vector
 				&& login_list[index].ip == login_list[id].ip
 				&& login_list[index].city == login_list[id].city
 				&& login_list[index].result == login_list[id].result) {
-				if(time_diff <= 0)
-					time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				if(max_time_diff <= 0)
+					max_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				min_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
 				con_login_cnt++;
 			}else {
 				break;
 			}
 		}
-		ss << ++feature_index << ":" << log(time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << con_login_cnt << " ";
 
-		time_diff = 0;
+		max_time_diff = 0;
+		min_time_diff = 0;
 		con_login_cnt = 0;
 		for(int id = index-1; id >= 0; id--) {
+			//if(index - id > 5) {
 			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
 				continue;
 			}
@@ -1856,32 +1873,38 @@ void update_user_history_login_info2(stringstream& ss, int feature_index, vector
 				&& login_list[index].ip != login_list[id].ip
 				&& login_list[index].city == login_list[id].city
 				&& login_list[index].result == login_list[id].result) {
-				if(time_diff <= 0)
-					time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				if(max_time_diff <= 0)
+					max_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				min_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
 				con_login_cnt++;
 			}else {
 				break;
 			}
 		}
-		ss << ++feature_index << ":" << log(time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << con_login_cnt << " ";
 
-		time_diff = 0;
+		max_time_diff = 0;
+		min_time_diff = 0;
 		con_login_cnt = 0;
 		for(int id = index-1; id >= 0; id--) {
+			//if(index - id > 5) {
 			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
 				continue;
 			}
 			if(login_list[index].device != login_list[id].device
 				&& login_list[index].ip != login_list[id].ip) {
-				if(time_diff <= 0)
-					time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				if(max_time_diff <= 0)
+					max_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				min_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
 				con_login_cnt++;
 			}else {
 				break;
 			}
 		}
-		ss << ++feature_index << ":" << log(time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << con_login_cnt << " ";
 
 		set<string> history_device_set;
@@ -1890,6 +1913,7 @@ void update_user_history_login_info2(stringstream& ss, int feature_index, vector
 		long ip_time_diff = 0;
 		int time_long_cnt = 0;
 		for(int id = 0; id < index; id++) {
+			//if(index - id > 5) {
 			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
 				continue;
 			}
@@ -2150,11 +2174,14 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	update_user_history_login_info2(ss, feature_index, login_list, index, 600L, trade_size); //16
 	feature_index += 100;
 
-	update_user_history_login_info2(ss, feature_index, login_list, index, ONE_MONTH, trade_size); //16
-	feature_index += 100;
+	//update_user_history_login_info2(ss, feature_index, login_list, index, ONE_DAY, trade_size); //16
+	//feature_index += 100;
 
-	update_user_history_login_info2(ss, feature_index, login_list, index, ONE_MONTH, trade_size); //16
-	feature_index += 100;
+	//update_user_history_login_info2(ss, feature_index, login_list, index, ONE_MONTH, trade_size); //16
+	//feature_index += 100;
+
+	//update_user_history_login_info2(ss, feature_index, login_list, index, THREE_MONTH, trade_size); //16
+	//feature_index += 100;
 	//cout << feature_index << endl;
 
 	update_user_history_trade_info(ss, feature_index, login_list, index, THREE_MONTH, trade_size);//3
