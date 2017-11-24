@@ -88,6 +88,18 @@ bool operator<(const login_data & x,const login_data & y) {
 	return x.time_stamp < y.time_stamp;
 }
 
+bool operator==(const login_data & x,const login_data & y)
+{
+	return (x.device == y.device)
+	     && (x.log_from == y.log_from)
+	     && (x.ip == y.ip)
+	     && (x.city == y.city)
+	     && (fabs(x.time_stamp - y.time_stamp) < 10)
+	     && (x.type == y.type)
+	     && (x.is_scan == y.is_scan)
+	     && (x.time_str == y.time_str);  
+}
+
 void out_trade(trade_data data) {
 	if(!DEBUG_TEST)
 		return;
@@ -709,6 +721,15 @@ bool load_login_data(string login_path) {
 	if(DEBUG_LOG) {
 		cout << "total login user " << login_info.size()  
 			<< ", times " << line_num  << endl;
+	}
+	for(map<string, set<login_data> >::iterator it = login_info.begin(); it != login_info.end(); it++) {
+		set<login_data> login_tmp = it->second;
+		login_data last_data;
+		last_data.time_stamp = 0;
+		for(set<login_data>::iterator set_it = login_tmp.begin(); set_it != login_tmp.end(); set_it++) {
+			login_data data = (*set_it);
+			update_discrete_map(login, login.user_id);
+		}
 	}
 	if(DEBUG_TEST) {
 		cout << "total login data " << login_info.at(test_user).size() << endl;
@@ -2023,6 +2044,8 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 
 	update_current_info(ss, feature_index, login_list, index, i, trade_size);//8
 	feature_index += 100;
+	//if(DEBUG_TEST)
+	//	cout << ss.str() << endl;
 	//cout << feature_index << endl;
 
 	update_global_info(ss, feature_index, user_id, login_list, index, trade_size);//6
@@ -2033,8 +2056,8 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	feature_index += 100;
 	//cout << feature_index << endl;
 
-	//update_user_history_info(ss, feature_index, login_list, index, FIVE_MONTH, trade_size);//45
-	//feature_index += 100;
+	update_user_history_info(ss, feature_index, login_list, index, FIVE_MONTH, trade_size);//45
+	feature_index += 100;
 	//cout << feature_index << endl;
 
 	update_last_login_info(ss, feature_index, login_list, index, trade_size);//9
@@ -2450,8 +2473,8 @@ bool transfer_data2() {
 				total_trade_it != total_trade_map.end(); ++total_trade_it) {
 		trade_data current = *total_trade_it;
 		if(current.row_key == 771747) {
-			debug_ttt = 1;
-			DEBUG_TEST = true;
+			//debug_ttt = 1;
+			//DEBUG_TEST = true;
 		}
 		if(size_num%10000 == 0)
 			cout << "process data size " << size_num << ", time " << current.time_stamp << endl; 
@@ -2548,8 +2571,8 @@ bool transfer_data2() {
 		}
 		part3_size++;
 		generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
-		if(debug_ttt)
-			return 0;
+		//if(debug_ttt)
+		//	return 0;
 		if(current.label == 0) {
 			/*if(index > 0)
 				valid_trade_login_info.push_back(login_list[index - 1]);
@@ -2615,8 +2638,8 @@ int main(int argc, char **argv) {
 
 	load_trade_data(trade_path);
 
-	//transfer_data();
-	transfer_data2();
+	transfer_data();
+	//transfer_data2();
 
 	output_discrete_map();
 
