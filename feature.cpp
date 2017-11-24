@@ -47,13 +47,6 @@ bool operator<(const trade_data & x,const trade_data & y) {
 	return x.time_stamp < y.time_stamp;  
 }
 
-/*bool operator==(const trade_data & x,const trade_data & y) {
-	return x.time_stamp == y.time_stamp
-			&& x.user_id == y.user_id
-			&& x.label == y.label
-			&& x.row_key == y.row_key;
-}*/
-
 typedef struct login_data{
 	int time_long;
 	string user_id;
@@ -86,25 +79,14 @@ void out_login(login_data data){
 	Out(data.is_scan);
 	Out(data.is_sec);
 	Out(data.time_str);
-	cout << " " << endl;
+	cout << " " << data.trade_vec.size() << endl;
 }
 
 bool operator<(const login_data & x,const login_data & y) {
 	if(x.time_stamp == y.time_stamp)
 		return x.device < y.device;
-	return x.time_stamp < y.time_stamp;  
+	return x.time_stamp < y.time_stamp;
 }
-
-/*bool operator==(const login_data & x,const login_data & y) {
-	return (x.device == y.device)
-	     && (x.log_from == y.log_from)
-	     && (x.ip == y.ip)
-	     && (x.city == y.city)
-	     && (fabs(x.time_stamp - y.time_stamp) == 0)
-	     && (x.type == y.type)
-	     && (x.is_scan == y.is_scan)
-	     && (x.time_str == y.time_str);  
-}*/
 
 void out_trade(trade_data data) {
 	if(!DEBUG_TEST)
@@ -139,6 +121,40 @@ map<string, map<string, int> > valid_total_ip_map;
 map<string, map<string, int> > black_total_device_map;
 map<string, map<string, int> > black_total_ip_map;
 
+int train_pos = 0, train_neg = 0, test_pos = 0, test_neg = 0, valid_pos = 0, valid_neg = 0;
+int case1_pos = 0, case1_neg = 0, case2_pos = 0, case2_neg = 0;
+
+map<string, int> device_map;
+map<string, int> ip_map;
+map<string, int> city_map;
+map<string, int> type_map;
+map<string, int> log_from_map;
+
+map<string, int> trade_device_map;
+map<string, int> trade_ip_map;
+map<string, int> trade_city_map;
+map<string, int> trade_type_map;
+map<string, int> trade_log_from_map;
+
+map<string, int> valid_device_map;
+map<string, int> valid_ip_map;
+map<string, int> valid_city_map;
+map<string, int> valid_type_map;
+map<string, int> valid_log_from_map;
+
+map<string, int> black_device_map;
+map<string, int> black_ip_map;
+map<string, int> black_city_map;
+map<string, int> black_type_map;
+map<string, int> black_log_from_map;
+
+set<string> device_set;
+set<string> ip_set;
+set<string> city_set;
+set<string> type_set;
+set<string> log_from_set;
+
+
 string train_file = "train_result";
 ofstream train_out_file(train_file.c_str());
 string test_file = "test_result";
@@ -147,6 +163,9 @@ string valid_file = "valid_result";
 ofstream valid_out_file(valid_file.c_str());
 string predict_file = "predict_result";
 ofstream predict_out_file(predict_file.c_str());
+
+ofstream zero_raw_data_out("zero_raw_data");
+ofstream sample_raw_data_out("sample_raw_data");
 
 bool upload_device_map(string path) {
 	ifstream file_in(path.c_str());
@@ -769,39 +788,6 @@ bool load_trade_data(string trade_path) {
 	return true;
 }
 
-int train_pos = 0, train_neg = 0, test_pos = 0, test_neg = 0, valid_pos = 0, valid_neg = 0;
-int case1_pos = 0, case1_neg = 0, case2_pos = 0, case2_neg = 0;
-
-map<string, int> device_map;
-map<string, int> ip_map;
-map<string, int> city_map;
-map<string, int> type_map;
-map<string, int> log_from_map;
-
-map<string, int> trade_device_map;
-map<string, int> trade_ip_map;
-map<string, int> trade_city_map;
-map<string, int> trade_type_map;
-map<string, int> trade_log_from_map;
-
-map<string, int> valid_device_map;
-map<string, int> valid_ip_map;
-map<string, int> valid_city_map;
-map<string, int> valid_type_map;
-map<string, int> valid_log_from_map;
-
-map<string, int> black_device_map;
-map<string, int> black_ip_map;
-map<string, int> black_city_map;
-map<string, int> black_type_map;
-map<string, int> black_log_from_map;
-
-set<string> device_set;
-set<string> ip_set;
-set<string> city_set;
-set<string> type_set;
-set<string> log_from_set;
-
 bool clear_history_map() {
 	device_map.clear();
 	ip_map.clear();
@@ -1196,14 +1182,14 @@ void update_global_info(stringstream& ss, int feature_index, string user_id, vec
 	int black_size = 0;
 	if(black_total_device_map.find(login.device) != black_total_device_map.end()) {
 		ss << ++feature_index << ":" << black_total_device_map.size() << " ";
-		ss << ++feature_index << ":" << black_total_device_map.at("sum") << " ";
+		ss << ++feature_index << ":" << black_total_device_map.at(login.device).at("sum") << " ";
 	}else {
 		feature_index += 2;
 	}
 
 	if(black_total_ip_map.find(login.ip) != black_total_ip_map.end()) {
 		ss << ++feature_index << ":" << black_total_ip_map.size() << " ";
-		ss << ++feature_index << ":" << black_total_ip_map.at("sum") << " ";
+		ss << ++feature_index << ":" << black_total_ip_map.at(login.ip).at("sum") << " ";
 	}else {
 		feature_index += 2;
 	}
@@ -2030,6 +2016,7 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 
 	int label = current.label;
 	long time_stamp = current.time_stamp;
+	//cout << "debug " << login.user_id << endl;
 
 	ss << label << " ";
 	int feature_index = 0;
@@ -2046,8 +2033,8 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	feature_index += 100;
 	//cout << feature_index << endl;
 
-	update_user_history_info(ss, feature_index, login_list, index, FIVE_MONTH, trade_size);//45
-	feature_index += 100;
+	//update_user_history_info(ss, feature_index, login_list, index, FIVE_MONTH, trade_size);//45
+	//feature_index += 100;
 	//cout << feature_index << endl;
 
 	update_last_login_info(ss, feature_index, login_list, index, trade_size);//9
@@ -2211,6 +2198,10 @@ bool generate_zero(trade_data data, int index, vector<trade_data> trade_list) {
 	}
 }
 
+int part1_size = 0;
+int part2_size = 0;
+int part3_size = 0;
+
 bool transfer_data() {
 	map<string, int> detail_trade_map1;
 	map<string, int> detail_trade_map2;
@@ -2231,7 +2222,8 @@ bool transfer_data() {
 			for(set<trade_data>::iterator iter = trade_detail.begin(); iter != trade_detail.end(); ++iter) {
 				trade_data trade = *iter;
 				i++;
-				generate_zero(trade, i, trade_list);
+				generate_zero(trade, i - 1, trade_list);
+				part1_size++;
 				size_num++;
 			}
 			continue;
@@ -2245,7 +2237,7 @@ bool transfer_data() {
 			login_list.push_back(*iter);
 		}
 		int i = 0;
-		int index = 0, befor_index = 0;
+		int index = -1, befor_index = 0;
 		clear_history_map();
 		int trade_cnt = 0;
 		for(set<trade_data>::iterator iter = trade_detail.begin(); iter != trade_detail.end(); ++iter) {
@@ -2276,41 +2268,17 @@ bool transfer_data() {
 			if(DEBUG_TEST) {
 				out_trade(trade);
 			}
-			if(i == 0) {
+			if(index < 0) {
 				size_num++;
-				generate_zero(trade, trade_cnt, trade_list);
-			}
-			if(i == 0)
+				part2_size++;
+				generate_zero(trade, trade_cnt - 1, trade_list);
 				continue;
+			}
 			update_history_trade(login_list[index]);
 			login_list[index].trade_vec.push_back(trade);
+			part3_size++;
 			generate_sample(login_list, i - 1, index, user_id, login_list[index].trade_vec.size());
 			size_num++;
-		}
-		for(i = 0; i < login_list.size(); i++) {
-			if(login_list[i].trade_vec.size() > 0) {
-				std::stringstream ss;
-				ss << login_list[i].device;
-				string trade_info = ss.str();
-				for(int j = 0; j < login_list[i].trade_vec.size(); j++) {
-					if(detail_trade_map2.find(trade_info) == detail_trade_map2.end()) {
-						detail_trade_map2.insert(make_pair(trade_info, 1));
-					}else {
-						map<string, int>::iterator itt = detail_trade_map2.find(trade_info);
-						int num = itt->second + 1;
-						itt->second = num;
-					}
-					if(login_list[i].trade_vec[j].label > 0) {
-						if(detail_trade_map1.find(trade_info) == detail_trade_map1.end()) {
-							detail_trade_map1.insert(make_pair(trade_info, 1));
-						}else {
-							map<string, int>::iterator itt = detail_trade_map1.find(trade_info);
-							int num = itt->second + 1;
-							itt->second = num;
-						}
-					}
-				}
-			}
 		}
 	}
 
@@ -2353,7 +2321,6 @@ bool transfer_login_and_trade() {
 	login_info.clear();
 }
 
-ofstream zero_raw_data_out("zero_raw_data");
 bool write_raw_data(vector<trade_data> trade_list) {
 	zero_raw_data_out << trade_list[0].user_id << " " << trade_list.size() << " " << endl;
 	for(int i = 0; i < trade_list.size(); i++) {
@@ -2390,7 +2357,6 @@ bool upload_zero_raw_data() {
 	return true;
 }
 
-ofstream sample_raw_data_out("sample_raw_data");
 bool write_sample_raw_data(map<string, vector<login_data> > total_login_vec) {
 	for(map<string, vector<login_data> >::iterator it = total_login_vec.begin(); it != total_login_vec.end(); it++) {
 		vector<login_data> data = it->second;
@@ -2479,9 +2445,14 @@ bool transfer_data2() {
 	vector<login_data> black_trade_login_info;
 	vector<login_data> valid_trade_login_info;
 	int black_id = 0, valid_id = 0;
+	bool debug_ttt = 0;
 	for(set<trade_data>::iterator total_trade_it = total_trade_map.begin(); 
 				total_trade_it != total_trade_map.end(); ++total_trade_it) {
 		trade_data current = *total_trade_it;
+		if(current.row_key == 771747) {
+			debug_ttt = 1;
+			DEBUG_TEST = true;
+		}
 		if(size_num%10000 == 0)
 			cout << "process data size " << size_num << ", time " << current.time_stamp << endl; 
 
@@ -2534,6 +2505,7 @@ bool transfer_data2() {
 			map<string, int>::iterator it = user_trade_cnt_map.find(user_id);
 			trade_index = it->second;
 			it->second = trade_index + 1;
+			part1_size++;
 			generate_zero(current, trade_index, trade_list);
 			size_num++;
 			continue;
@@ -2541,7 +2513,7 @@ bool transfer_data2() {
 		map<string, vector<login_data> >::iterator login_it = total_login_vec.find(user_id);
 		vector<login_data> login_list = login_it->second;
 
-		int index = 0;
+		int index = -1;
 		int login_index = 0;
 		for(; login_index < login_list.size(); login_index++) {
 			if(login_list[login_index].time_stamp > current.time_stamp)
@@ -2551,11 +2523,16 @@ bool transfer_data2() {
 			}
 			out_login(login_list[login_index]);
 		}
-		if(index == 0) {
+		//if(index == 0  && login_index > 0){
+		//	cout << user_id << endl;
+		//	return 0;
+		//}
+		if(index < 0) {
 			out_trade(current);
 			map<string, int>::iterator it = user_trade_cnt_map.find(user_id);
 			trade_index = it->second;
 			it->second = trade_index + 1;
+			part2_size++;
 			generate_zero(current, trade_index, trade_list);
 			size_num++;
 			continue;
@@ -2564,12 +2541,15 @@ bool transfer_data2() {
 		login_list[index].trade_vec.push_back(current);
 		login_it->second = login_list;
 		int first_label = login_list[index].trade_vec[0].label;
-		if(first_label != current.label)
-			cout << user_id << endl;
+		//if(first_label != current.label)
+			//cout << user_id << endl;
 		for(int id = 0; id < (login_it->second)[index].trade_vec.size(); id++) {
 			out_trade((login_it->second)[index].trade_vec[id]);
 		}
+		part3_size++;
 		generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
+		if(debug_ttt)
+			return 0;
 		if(current.label == 0) {
 			/*if(index > 0)
 				valid_trade_login_info.push_back(login_list[index - 1]);
@@ -2597,7 +2577,7 @@ bool transfer_data2() {
 
 	if(DEBUG_TEST)
 		return 0;
-	write_sample_raw_data(total_login_vec);
+	/*write_sample_raw_data(total_login_vec);
 
 	cout << "begin to write zero sample" << endl;
 	for(map<string, int>::iterator map_it = user_trade_cnt_map.begin(); map_it != user_trade_cnt_map.end(); map_it++) {
@@ -2606,16 +2586,15 @@ bool transfer_data2() {
 		//cout << user_id << " " << index << endl;
 		if(index == 0)
 			continue;
-		vector<trade_data> trade_list = trade_vec.at(user_id);
+		vector<trade_data> trade_list = total_trade_vec.at(user_id);
 		vector<trade_data> sub_list;
 		for(int i = 0; i < index; i++)
 			sub_list.push_back(trade_list[i]);
 		write_raw_data(sub_list);
-	}
+	}*/
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	srand((unsigned)time(NULL));
 	string login_path = argv[1];
 	string trade_path = argv[2];
@@ -2636,8 +2615,8 @@ int main(int argc, char **argv)
 
 	load_trade_data(trade_path);
 
-	transfer_data();
-	//transfer_data2();
+	//transfer_data();
+	transfer_data2();
 
 	output_discrete_map();
 
@@ -2649,4 +2628,5 @@ int main(int argc, char **argv)
 			 << case2_pos << " " << case2_neg << endl;
 		cout << "max_time_long " << max_time_long << endl;
 	}
+	cout << "part size " << part1_size << " " << part2_size << " " << part3_size << endl;
 }
