@@ -17,10 +17,11 @@
 #define N 9999
 #define DOUBLE_MAX 1.79e+308
 #define DOUBLE_MIN -2.22e-308
-#define FIVE_MONTH 3600*24*30*5
-#define THREE_MONTH 3600*24*30*3
-#define ONE_MONTH 3600*24*30
-#define FIVE_DAY 3600*24*5
+#define FIVE_MONTH (3600*24*30*5)
+#define THREE_MONTH (3600*24*30*3)
+#define ONE_MONTH (3600*24*30)
+#define ONE_DAY (3600*24)
+#define FIVE_DAY (3600*24*5)
 #define Name(X) #X
 #define Out(X) {string xname = Name(X); cout << xname.substr(5, xname.size()-1) << ": " << X << " ";}
 using namespace std;
@@ -61,6 +62,26 @@ typedef struct login_data{
 	int is_sec;
 	vector<trade_data> trade_vec;
 	string time_str;
+
+	login_data& operator=(const login_data data) {
+		this->time_long = data.time_long;
+		this->user_id = data.user_id;
+		this->device = data.device;
+		this->log_from = data.log_from;
+		this->ip = data.ip;
+		this->city = data.city;
+		this->result = data.result;
+		this->time_stamp = data.time_stamp;
+		this->type = data.type;
+		this->is_scan = data.is_scan;
+		this->is_sec = data.is_sec;
+		this->time_str = data.time_str;
+
+		(this->trade_vec).clear();
+		for(int i = 0; i < data.trade_vec.size(); i++) {
+			(this->trade_vec).push_back(data.trade_vec[i]);
+		}
+	}
 }login_data;
 
 void out_login(login_data data){
@@ -88,8 +109,7 @@ bool operator<(const login_data & x,const login_data & y) {
 	return x.time_stamp < y.time_stamp;
 }
 
-bool operator==(const login_data & x,const login_data & y)
-{
+bool operator==(const login_data & x,const login_data & y) {
 	return (x.device == y.device)
 	     && (x.log_from == y.log_from)
 	     && (x.ip == y.ip)
@@ -716,7 +736,7 @@ bool load_login_data(string login_path) {
 			it->second = log_list;
 			int size1 = (it->second).size();
 		}
-		update_discrete_map(login, login.user_id);
+		//update_discrete_map(login, login.user_id);
 	}
 	if(DEBUG_LOG) {
 		cout << "total login user " << login_info.size()  
@@ -724,11 +744,16 @@ bool load_login_data(string login_path) {
 	}
 	for(map<string, set<login_data> >::iterator it = login_info.begin(); it != login_info.end(); it++) {
 		set<login_data> login_tmp = it->second;
+		set<login_data> new_login;
 		login_data last_data;
 		last_data.time_stamp = 0;
 		for(set<login_data>::iterator set_it = login_tmp.begin(); set_it != login_tmp.end(); set_it++) {
 			login_data data = (*set_it);
-			update_discrete_map(login, login.user_id);
+			if(!(last_data == data)) {
+				update_discrete_map(data, data.user_id);
+				new_login.insert(data);
+			}
+			last_data = data;
 		}
 	}
 	if(DEBUG_TEST) {
@@ -1241,14 +1266,12 @@ void update_global_info(stringstream& ss, int feature_index, string user_id, vec
 void calc_user_history(vector<login_data> login_list, int index, long time_stamp, login_data login, trade_data current, int trade_size) {
 	clear_history_map();
 	int login_index = 0;
-	//cout << "debug ";
 	for(; login_index < index; login_index++) {
 		if(current.time_stamp - login_list[login_index].time_stamp > time_stamp) {
 			continue;			
 		}
 		update_login_set(login_list[login_index]);
 		if(login_list[login_index].result == "1") {
-			//cout << " " << login_index;
 			update_history_login(login_list[login_index]);
 			for(int j = 0; j < login_list[login_index].trade_vec.size(); j++) {
 				if(login_list[login_index].trade_vec[j].label == 0 
@@ -1628,7 +1651,7 @@ void update_last_last_login_info(stringstream& ss, int feature_index, vector<log
 	}
 }
 
-void update_user_history_login_info(stringstream& ss, int feature_index, vector<login_data> login_list, int index, long time_threshold, int trade_size) {
+void update_user_history_login_info1(stringstream& ss, int feature_index, vector<login_data> login_list, int index, long time_threshold, int trade_size) {
 	login_data login = login_list[index];
 	trade_data current = login.trade_vec[trade_size - 1];
 
@@ -1752,7 +1775,17 @@ void update_user_history_login_info(stringstream& ss, int feature_index, vector<
 		ss << ++feature_index << ":" << log(device_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << log(ip_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << log(city_time_diff + 1) << " ";
+	}
+}
 
+void update_user_history_login_info2(stringstream& ss, int feature_index, vector<login_data> login_list, int index, long time_threshold, int trade_size) {
+	login_data login = login_list[index];
+	trade_data current = login.trade_vec[trade_size - 1];
+
+	int label = current.label;
+	long time_stamp = current.time_stamp;
+
+	if(index > 0) {
 		long time_diff = 0;
 		int con_login_cnt = 0;
 		for(int id = index-1; id >= 0; id--) {
@@ -1833,8 +1866,28 @@ void update_user_history_login_info(stringstream& ss, int feature_index, vector<
 		ss << ++feature_index << ":" << log(time_diff + 1) << " ";
 		ss << ++feature_index << ":" << con_login_cnt << " ";
 
-		device_time_diff = 0;
-		ip_time_diff = 0;
+		time_diff = 0;
+		con_login_cnt = 0;
+		for(int id = index-1; id >= 0; id--) {
+			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
+				continue;
+			}
+			if(login_list[index].device != login_list[id].device
+				&& login_list[index].ip != login_list[id].ip) {
+				if(time_diff <= 0)
+					time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				con_login_cnt++;
+			}else {
+				break;
+			}
+		}
+		ss << ++feature_index << ":" << log(time_diff + 1) << " ";
+		ss << ++feature_index << ":" << con_login_cnt << " ";
+
+		set<string> history_device_set;
+		set<string> history_ip_set;
+		long device_time_diff = 0;
+		long ip_time_diff = 0;
 		int time_long_cnt = 0;
 		for(int id = 0; id < index; id++) {
 			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
@@ -1842,10 +1895,12 @@ void update_user_history_login_info(stringstream& ss, int feature_index, vector<
 			}
 			if(login_list[id].city == login_list[index].city
 				&& login_list[id].device != login_list[index].device) {
+				history_device_set.insert(login_list[id].device);
 				device_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
 			}
 			if(login_list[id].city == login_list[index].city
 				&& login_list[id].ip != login_list[index].ip) {
+				history_ip_set.insert(login_list[id].ip);
 				ip_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
 			}
 			if(login_list[id].time_long > (time_stamp - login_list[id].time_stamp)) {
@@ -1853,6 +1908,10 @@ void update_user_history_login_info(stringstream& ss, int feature_index, vector<
 			}
 		}
 		ss << ++feature_index << ":" << time_long_cnt << " ";
+		ss << ++feature_index << ":" << history_device_set.size() << " ";
+		ss << ++feature_index << ":" << device_time_diff << " ";
+		ss << ++feature_index << ":" << history_ip_set.size() << " ";
+		ss << ++feature_index << ":" << ip_time_diff << " ";
 	}
 }
 
@@ -1864,11 +1923,25 @@ void update_user_history_trade_info(stringstream& ss, int feature_index, vector<
 	long min_diff = 17280000;
 	double avg_diff = 0.0;
 	int cnt = 0;
+	int time_diff = 0;
+	int device_status = 0;
+	int ip_status = 0;
 	for(int id = 0; id < index; id++) {
 		if(login_list[index].time_stamp - login_list[id].time_stamp > time_threshold)
 			continue;
 		login_data login = login_list[id];
 		int trade_size = login.trade_vec.size();
+		if(trade_size > 0) {
+			time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+			if(login_list[index].device == login_list[id].device)
+				device_status = 2;
+			else
+				device_status = 1;
+			if(login_list[index].ip == login_list[id].ip)
+				ip_status = 2;
+			else
+				ip_status = 1;
+		}
 		if(trade_size > 1) {
 			for(int i = 0; i < trade_size - 1; i++) {
 				long diff = login.trade_vec[i + 1].time_stamp - login.trade_vec[i].time_stamp;
@@ -1887,6 +1960,9 @@ void update_user_history_trade_info(stringstream& ss, int feature_index, vector<
 		return;
 	avg_diff = avg_diff/cnt;
 
+	ss << ++feature_index << ":" << time_diff << " ";
+	ss << ++feature_index << ":" << device_status << " ";
+	ss << ++feature_index << ":" << ip_status << " ";
 	ss << ++feature_index << ":" << max_diff << " ";
 	ss << ++feature_index << ":" << log(min_diff + 1) << " ";
 	ss << ++feature_index << ":" << avg_diff << " ";
@@ -2068,7 +2144,16 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	feature_index += 100;
 	//cout << feature_index << endl;
 
-	update_user_history_login_info(ss, feature_index, login_list, index, 600L, trade_size); //16
+	update_user_history_login_info1(ss, feature_index, login_list, index, 600L, trade_size); //16
+	feature_index += 100;
+
+	update_user_history_login_info2(ss, feature_index, login_list, index, 600L, trade_size); //16
+	feature_index += 100;
+
+	update_user_history_login_info2(ss, feature_index, login_list, index, ONE_MONTH, trade_size); //16
+	feature_index += 100;
+
+	update_user_history_login_info2(ss, feature_index, login_list, index, ONE_MONTH, trade_size); //16
 	feature_index += 100;
 	//cout << feature_index << endl;
 
