@@ -1620,7 +1620,7 @@ string update_last_last_login_info(int feature_index, vector<login_data> login_l
 
 	int before_index = index - 1;
 	if(before_index > 1) {
-		if(login_list[before_index - 1].device == login.device) {
+		/*if(login_list[before_index - 1].device == login.device) {
 			ss << ++feature_index << ":1" << " ";
 		}else
 			++feature_index;
@@ -1647,7 +1647,7 @@ string update_last_last_login_info(int feature_index, vector<login_data> login_l
 		if(login_list[before_index - 1].type == login.type) {
 			ss << ++feature_index << ":1" << " ";
 		}else
-			++feature_index;
+			++feature_index;*/
 
 		ss << ++feature_index << ":" << time_stamp - login_list[before_index - 1].time_stamp << " ";
 
@@ -1752,8 +1752,8 @@ string update_user_history_login_info1(int feature_index, vector<login_data> log
 				}
 				if(login_list[id].result == "1")
 					login_cnt++;
-				if(id == index)
-					continue;
+				//if(id == index)
+				//	continue;
 				if(login_list[id].trade_vec.size() > 0) {
 					sum_trade += 1;
 					trade_cnt += login_list[id].trade_vec.size();
