@@ -2267,8 +2267,8 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	feature_index += 100;
 	//cout << feature_index << endl;
 
-	//ss << update_disc_info(feature_index, login_list, index, i, trade_size);//62
-	//feature_index += 100;
+	ss << update_disc_info(feature_index, login_list, index, i, trade_size);//62
+	feature_index += 100;
 	//cout << feature_index << endl;
 	
 
