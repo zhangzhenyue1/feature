@@ -1620,7 +1620,7 @@ string update_last_last_login_info(int feature_index, vector<login_data> login_l
 
 	int before_index = index - 1;
 	if(before_index > 1) {
-		/*if(login_list[before_index - 1].device == login.device) {
+		if(login_list[before_index - 1].device == login.device) {
 			ss << ++feature_index << ":1" << " ";
 		}else
 			++feature_index;
@@ -1647,7 +1647,7 @@ string update_last_last_login_info(int feature_index, vector<login_data> login_l
 		if(login_list[before_index - 1].type == login.type) {
 			ss << ++feature_index << ":1" << " ";
 		}else
-			++feature_index;*/
+			++feature_index;
 
 		ss << ++feature_index << ":" << time_stamp - login_list[before_index - 1].time_stamp << " ";
 
@@ -1657,7 +1657,7 @@ string update_last_last_login_info(int feature_index, vector<login_data> login_l
 		ss << ++feature_index << ":" << log(max_time_long + login.time_long - login_list[before_index - 1].time_long + 1) << " ";
 		ss << ++feature_index << ":" << login.time_long - login_list[before_index - 1].time_long << " ";
 
-		/*if(login_list[before_index - 1].device == login_list[before_index].device) {
+		if(login_list[before_index - 1].device == login_list[before_index].device) {
 			ss << ++feature_index << ":1" << " ";
 		}else
 			++feature_index;
@@ -1684,7 +1684,7 @@ string update_last_last_login_info(int feature_index, vector<login_data> login_l
 		if(login_list[before_index - 1].type == login_list[before_index].type) {
 			ss << ++feature_index << ":1" << " ";
 		}else
-			++feature_index;*/
+			++feature_index;
 
 		ss << ++feature_index << ":" << login_list[before_index].time_stamp - login_list[before_index - 1].time_stamp << " ";
 		ss << ++feature_index << ":" << log(max_time_long + login_list[before_index].time_long - login_list[before_index - 1].time_long + 1) << " ";
@@ -1752,8 +1752,6 @@ string update_user_history_login_info1(int feature_index, vector<login_data> log
 				}
 				if(login_list[id].result == "1")
 					login_cnt++;
-				//if(id == index)
-				//	continue;
 				if(login_list[id].trade_vec.size() > 0) {
 					sum_trade += 1;
 					trade_cnt += login_list[id].trade_vec.size();
@@ -2106,7 +2104,7 @@ string update_login_error_info(int feature_index, vector<login_data> login_list,
 	int label = current.label;
 	long time_stamp = current.time_stamp;
 	if(i != index) {
-		if(login_list[i].device == login.device) {
+		/*if(login_list[i].device == login.device) {
 			ss << ++feature_index << ":1" << " ";
 		}else
 			++feature_index;
@@ -2132,15 +2130,15 @@ string update_login_error_info(int feature_index, vector<login_data> login_list,
 		if(login_list[i].type == login.type) {
 			ss << ++feature_index << ":1" << " ";
 		}else
-			++feature_index;
+			++feature_index;*/
 
 		ss << ++feature_index << ":" << time_stamp - login_list[i].time_stamp << " ";
 
-		ss << ++feature_index << ":" << login.time_stamp - login_list[i].time_stamp << " ";
+		//ss << ++feature_index << ":" << login.time_stamp - login_list[i].time_stamp << " ";
 		ss << ++feature_index << ":" << log(max_time_long + login.time_long - login_list[i].time_long + 1) << " ";
-		ss << ++feature_index << ":" << login.time_long - login_list[i].time_long << " ";
+		//ss << ++feature_index << ":" << login.time_long - login_list[i].time_long << " ";
 	}else{
-		feature_index += 9;
+		feature_index += 10;
 	}
 
 	return ss.str();
@@ -2158,6 +2156,7 @@ string update_disc_info(int feature_index, vector<login_data> login_list, int in
 	int type_size = 3;
 	int log_from = 11;
 
+	//11+3+(11+10+3)*2
 	int log_from_index = (discrete_map.at("log_from")).at(login.log_from);
 	ss << 1 + log_from_index + feature_index << ":1" << " ";
 	feature_index += log_from;
@@ -2268,8 +2267,8 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	feature_index += 100;
 	//cout << feature_index << endl;
 
-	ss << update_disc_info(feature_index, login_list, index, i, trade_size);//62
-	feature_index += 100;
+	//ss << update_disc_info(feature_index, login_list, index, i, trade_size);//62
+	//feature_index += 100;
 	//cout << feature_index << endl;
 	
 
