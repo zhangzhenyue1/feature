@@ -160,6 +160,8 @@ map<string, map<string, int> > valid_total_device_map;
 map<string, map<string, int> > valid_total_ip_map;
 map<string, map<string, int> > black_total_device_map;
 map<string, map<string, int> > black_total_ip_map;
+map<string, map<string, int> > gray_total_device_map;
+map<string, map<string, int> > gray_total_ip_map;
 
 int train_pos = 0, train_neg = 0, test_pos = 0, test_neg = 0, valid_pos = 0, valid_neg = 0;
 int case1_pos = 0, case1_neg = 0, case2_pos = 0, case2_neg = 0;
@@ -447,6 +449,33 @@ bool update_black_total_device_map(login_data data, string user_id) {
 	}
 }
 
+bool update_gray_total_device_map(login_data data, string user_id) {
+	map<string, map<string, int> >::iterator it = gray_total_device_map.find(data.device);
+	if(it == gray_total_device_map.end()) {
+		map<string, int> tmp;
+		tmp.insert(make_pair(user_id, 1));
+		tmp.insert(make_pair("sum", 1));
+		gray_total_device_map.insert(make_pair(data.device, tmp));
+	}else {
+		map<string, int> tmp = it->second;
+		if(tmp.find(user_id) == tmp.end()) {
+			tmp.insert(make_pair(user_id, 1));
+			map<string, int>::iterator it1 = tmp.find("sum");
+			int size = it1->second + 1;
+			it1->second = size;
+		}else {
+			map<string, int>::iterator iter = tmp.find(user_id);
+			int cnt = iter->second + 1;
+			iter->second = cnt;
+
+			map<string, int>::iterator it1 = tmp.find("sum");
+			int size = it1->second + 1;
+			it1->second = size;
+		}
+		it->second = tmp;
+	}
+}
+
 bool update_log_from_map(login_data data) {
 	map<string, map<string, int> >::iterator it = discrete_map.find("log_from");
 	map<string, int> tmp = it->second;
@@ -597,6 +626,34 @@ bool update_black_total_ip_map(login_data data, string user_id) {
 	}
 }
 
+bool update_gray_total_ip_map(login_data data, string user_id) {
+	map<string, map<string, int> >::iterator it = gray_total_ip_map.find(data.ip);
+	if(it == gray_total_ip_map.end()) {
+		map<string, int> tmp;
+		tmp.insert(make_pair(user_id, 1));
+		tmp.insert(make_pair("sum", 1));
+		gray_total_ip_map.insert(make_pair(data.ip, tmp));
+	}else {
+		map<string, int> tmp = it->second;
+		if(tmp.find(user_id) == tmp.end()) {
+			tmp.insert(make_pair(user_id, 1));
+			
+			map<string, int>::iterator it1 = tmp.find("sum");
+			int size = it1->second + 1;
+			it1->second = size;
+		}else {
+			map<string, int>::iterator iter = tmp.find(user_id);
+			int cnt = iter->second + 1;
+			iter->second = cnt;
+
+			map<string, int>::iterator it1 = tmp.find("sum");
+			int size = it1->second + 1;
+			it1->second = size;
+		}
+		it->second = tmp;
+	}
+}
+
 bool update_city_map(login_data data) {
 	map<string, map<string, int> >::iterator it = discrete_map.find("city");
 	map<string, int> tmp = it->second;
@@ -726,8 +783,8 @@ bool load_login_data(string login_path) {
 		tm_tmp.tm_isdst = -1;
 		t_tmp = mktime(&tm_tmp);
 		if(DEBUG_TEST) {
-			//if(user_id != test_user)
-			//	continue;
+			if(user_id != test_user && test_user.length() > 0)
+				continue;
 			//cout << "log info: ";
 			//out_login(login);
 			//cout << " " << endl;
@@ -819,8 +876,8 @@ bool load_trade_data(string trade_path) {
 		if(i != 4)
 			continue;
 		if(DEBUG_TEST) {
-			//if(user_id != test_user)
-			//	continue;
+			if(user_id != test_user && test_user.length() > 0)
+				continue;
 			//out_trade(trade);
 		}
 		if(trade.label)
@@ -1222,7 +1279,10 @@ string update_global_info(int feature_index, string user_id, vector<login_data> 
 		feature_index += 3;
 	}
 
-	/*if(index > 0) {
+	/*if(test_user.length() > 0)
+		cout << "debug " << black_total_device_map.size() << " " << total_device_map.size() << " " << trade_total_device_map.size() << endl;
+
+	if(index > 0) {
 		int device_status = 0;
 		int ip_status = 0;
 		for(int id = 0; id < index; id++) {
@@ -1241,7 +1301,7 @@ string update_global_info(int feature_index, string user_id, vector<login_data> 
 	} else
 		feature_index += 2;*/
 
-	/*int black_size = 0;
+	int black_size = 0;
 	if(black_total_device_map.find(login.device) != black_total_device_map.end()) {
 		ss << ++feature_index << ":" << black_total_device_map.size() << " ";
 		ss << ++feature_index << ":" << black_total_device_map.at(login.device).at("sum") << " ";
@@ -1252,6 +1312,34 @@ string update_global_info(int feature_index, string user_id, vector<login_data> 
 	if(black_total_ip_map.find(login.ip) != black_total_ip_map.end()) {
 		ss << ++feature_index << ":" << black_total_ip_map.size() << " ";
 		ss << ++feature_index << ":" << black_total_ip_map.at(login.ip).at("sum") << " ";
+	}else {
+		feature_index += 2;
+	}
+
+	if(gray_total_device_map.find(login.device) != gray_total_device_map.end()) {
+		ss << ++feature_index << ":" << gray_total_device_map.size() << " ";
+		ss << ++feature_index << ":" << gray_total_device_map.at(login.device).at("sum") << " ";
+	}else {
+		feature_index += 2;
+	}
+
+	if(gray_total_ip_map.find(login.ip) != gray_total_ip_map.end()) {
+		ss << ++feature_index << ":" << gray_total_ip_map.size() << " ";
+		ss << ++feature_index << ":" << gray_total_ip_map.at(login.ip).at("sum") << " ";
+	}else {
+		feature_index += 2;
+	}
+
+	if(valid_total_device_map.find(login.device) != valid_total_device_map.end()) {
+		ss << ++feature_index << ":" << valid_total_device_map.size() << " ";
+		ss << ++feature_index << ":" << valid_total_device_map.at(login.device).at("sum") << " ";
+	}else {
+		feature_index += 2;
+	}
+
+	if(valid_total_ip_map.find(login.ip) != valid_total_ip_map.end()) {
+		ss << ++feature_index << ":" << valid_total_ip_map.size() << " ";
+		ss << ++feature_index << ":" << valid_total_ip_map.at(login.ip).at("sum") << " ";
 	}else {
 		feature_index += 2;
 	}
@@ -1295,7 +1383,7 @@ string update_global_info(int feature_index, string user_id, vector<login_data> 
 		}
 	}else{
 		feature_index += 2;
-	}*/
+	}
 
 	return ss.str();
 }
@@ -1848,9 +1936,9 @@ string update_user_history_login_info2(int feature_index, vector<login_data> log
 		long max_time_diff = 0;
 		long min_time_diff = 0;
 		int con_login_cnt = 0;
-		for(int id = index-1; id >= 0; id--) {
-			//if(index - id > 5) {
-			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
+		/*for(int id = index-1; id >= 0; id--) {
+			if(index - id > 5) {
+			//if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
 				continue;
 			}
 			if(login_list[index].device == login_list[id].device
@@ -1873,8 +1961,8 @@ string update_user_history_login_info2(int feature_index, vector<login_data> log
 		min_time_diff = 0;
 		con_login_cnt = 0;
 		for(int id = index-1; id >= 0; id--) {
-			//if(index - id > 5) {
-			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
+			if(index - id > 5) {
+			//if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
 				continue;
 			}
 			if(login_list[index].device == login_list[id].device
@@ -1891,9 +1979,33 @@ string update_user_history_login_info2(int feature_index, vector<login_data> log
 		}
 		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
-		ss << ++feature_index << ":" << con_login_cnt << " ";
+		ss << ++feature_index << ":" << con_login_cnt << " ";*/
 
 		max_time_diff = 0;
+		min_time_diff = 0;
+		con_login_cnt = 0;
+		for(int id = index-1; id >= 0; id--) {
+			if(index - id > 5) {
+			//if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
+				continue;
+			}
+			if(login_list[index].device != login_list[id].device
+				&& login_list[index].ip == login_list[id].ip
+				&& login_list[index].city == login_list[id].city
+				&& login_list[index].result == login_list[id].result) {
+				if(max_time_diff <= 0)
+					max_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				min_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				con_login_cnt++;
+			}else {
+				break;
+			}
+		}
+		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
+		ss << ++feature_index << ":" << con_login_cnt << " ";
+
+		/*max_time_diff = 0;
 		min_time_diff = 0;
 		con_login_cnt = 0;
 		for(int id = index-1; id >= 0; id--) {
@@ -1915,14 +2027,14 @@ string update_user_history_login_info2(int feature_index, vector<login_data> log
 		}
 		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
-		ss << ++feature_index << ":" << con_login_cnt << " ";
+		ss << ++feature_index << ":" << con_login_cnt << " ";*/
 
-		max_time_diff = 0;
+		/*max_time_diff = 0;
 		min_time_diff = 0;
 		con_login_cnt = 0;
 		for(int id = index-1; id >= 0; id--) {
-			//if(index - id > 5) {
-			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
+			if(index - id > 5) {
+			//if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
 				continue;
 			}
 			if(login_list[index].device == login_list[id].device
@@ -1939,9 +2051,31 @@ string update_user_history_login_info2(int feature_index, vector<login_data> log
 		}
 		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
-		ss << ++feature_index << ":" << con_login_cnt << " ";
+		ss << ++feature_index << ":" << con_login_cnt << " ";*/
 
 		max_time_diff = 0;
+		min_time_diff = 0;
+		con_login_cnt = 0;
+		for(int id = index-1; id >= 0; id--) {
+			if(index - id > 5) {
+			//if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
+				continue;
+			}
+			if(login_list[index].device != login_list[id].device
+				&& login_list[index].ip != login_list[id].ip) {
+				if(max_time_diff <= 0)
+					max_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				min_time_diff = login_list[index].time_stamp - login_list[id].time_stamp;
+				con_login_cnt++;
+			}else {
+				break;
+			}
+		}
+		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
+		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
+		ss << ++feature_index << ":" << con_login_cnt << " ";
+
+		/*max_time_diff = 0;
 		min_time_diff = 0;
 		con_login_cnt = 0;
 		for(int id = index-1; id >= 0; id--) {
@@ -1961,7 +2095,7 @@ string update_user_history_login_info2(int feature_index, vector<login_data> log
 		}
 		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
-		ss << ++feature_index << ":" << con_login_cnt << " ";
+		ss << ++feature_index << ":" << con_login_cnt << " ";*/
 
 		set<string> history_device_set;
 		set<string> history_ip_set;
@@ -1969,8 +2103,8 @@ string update_user_history_login_info2(int feature_index, vector<login_data> log
 		long ip_time_diff = 0;
 		int time_long_cnt = 0;
 		for(int id = 0; id < index; id++) {
-			//if(index - id > 5) {
-			if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
+			if(index - id > 5) {
+			//if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
 				continue;
 			}
 			if(login_list[id].city == login_list[index].city
@@ -2181,7 +2315,7 @@ string update_disc_info(int feature_index, vector<login_data> login_list, int in
 		feature_index += log_from + result_size + type_size;
 	}
 
-	if(i != index) {
+	/*if(i != index) {
 		log_from_index = (discrete_map.at("log_from")).at(login_list[i].log_from);
 		ss << 1 + log_from_index + feature_index << ":1" << " ";
 		feature_index += log_from;
@@ -2195,7 +2329,7 @@ string update_disc_info(int feature_index, vector<login_data> login_list, int in
 		feature_index += type_size;
 	}else{
 		feature_index += log_from + result_size + type_size;
-	}
+	}*/
 
 	return ss.str();
 }
@@ -2266,7 +2400,6 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	ss << update_login_error_info(feature_index, login_list, index, i, trade_size);//9
 	feature_index += 100;
 	//cout << feature_index << endl;
-
 
 	ss << update_disc_info(feature_index, login_list, index, i, trade_size);//62
 	feature_index += 100;
@@ -2665,32 +2798,48 @@ bool transfer_data2() {
 	map<string, int> user_trade_cnt_map;
 	
 	vector<login_data> black_trade_login_info;
+	vector<login_data> gray_trade_login_info;
 	vector<login_data> valid_trade_login_info;
-	int black_id = 0, valid_id = 0;
+	int black_id = 0, valid_id = 0, gray_id = 0;
 	bool debug_ttt = 0;
 	for(set<trade_data>::iterator total_trade_it = total_trade_map.begin(); 
 				total_trade_it != total_trade_map.end(); ++total_trade_it) {
 		trade_data current = *total_trade_it;
-		//if(current.row_key == 771747) {
-			//debug_ttt = 1;
-			//DEBUG_TEST = true;
-		//}
-		if(size_num%10000 == 0)
-			cout << "process data size " << size_num << ", time " << current.time_stamp << endl; 
+		if(debug_ttt == 0 && current.time_stamp > 1422720000L) {
+			debug_ttt = 1;
+			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
+		}else if (debug_ttt == 1 && current.time_stamp > 1425139200L) {
+			debug_ttt = 2;
+			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
+		}else if (debug_ttt == 2 && current.time_stamp > 1427817600L) {
+			debug_ttt = 3;
+			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
+		}else if (debug_ttt == 3 && current.time_stamp > 1430409600L) {
+			debug_ttt = 4;
+			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
+		}else if (debug_ttt == 4 && current.time_stamp > 1433088000L) {
+			debug_ttt = 5;
+			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
+		}else if (debug_ttt == 5 && current.time_stamp > 1435680000L) {
+			debug_ttt = 6;
+			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
+		}
+		//if(size_num%10000 == 0)
+		//	cout << "process data size " << size_num << ", time " << current.time_stamp << endl; 
 
 		string user_id = current.user_id;
 		if(user_id.length() < 1)
 			continue;
 		long time_stamp = current.time_stamp;
 
-		/*for(; total_login_it != total_login_map.end(); total_login_it++) {
+		for(; total_login_it != total_login_map.end(); total_login_it++) {
 			if((*total_login_it).time_stamp < current.time_stamp) {
 				update_total_device_map(*total_login_it, (*total_login_it).user_id);
 				update_total_ip_map(*total_login_it, (*total_login_it).user_id);
 			}else {
 				break;
 			}
-		}*/
+		}
 
 		if(black_id < black_trade_login_info.size()) {
 			for(; black_id < black_trade_login_info.size(); black_id++) {
@@ -2699,6 +2848,18 @@ bool transfer_data2() {
 						black_trade_login_info[black_id].user_id);
 					update_black_total_ip_map(black_trade_login_info[black_id], 
 						black_trade_login_info[black_id].user_id);
+				}else
+					break;
+			}
+		}
+
+		if(gray_id < gray_trade_login_info.size()) {
+			for(; gray_id < gray_trade_login_info.size(); gray_id++) {
+				if(current.time_stamp - gray_trade_login_info[gray_id].time_stamp > ONE_MONTH) {
+					update_gray_total_device_map(gray_trade_login_info[gray_id], 
+						gray_trade_login_info[gray_id].user_id);
+					update_gray_total_ip_map(gray_trade_login_info[gray_id], 
+						gray_trade_login_info[gray_id].user_id);
 				}else
 					break;
 			}
@@ -2773,12 +2934,10 @@ bool transfer_data2() {
 		generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
 		update_trade_total_device_map(login_list[index], login_list[index].user_id);
 		update_trade_total_ip_map(login_list[index], login_list[index].user_id);
-		//if(debug_ttt)
-		//	return 0;
 		if(current.label == 0) {
-			/*if(index > 0)
+			if(index > 0)
 				valid_trade_login_info.push_back(login_list[index - 1]);
-			for(int tmp_id = 0; tmp_id < index; tmp_id++) {
+			/*for(int tmp_id = 0; tmp_id < index; tmp_id++) {
 				if(current.time_stamp - login_list[tmp_id].time_stamp < ONE_MONTH) {
 					valid_trade_login_info.push_back(login_list[tmp_id]);
 				}
@@ -2786,9 +2945,9 @@ bool transfer_data2() {
 			valid_trade_login_info.push_back(login_list[index]);
 		}
 		else {
-			/*if(index > 0)
+			if(index > 0)
 				black_trade_login_info.push_back(login_list[index - 1]);
-			for(int tmp_id = 0; tmp_id < index; tmp_id++) {
+			/*for(int tmp_id = 0; tmp_id < index; tmp_id++) {
 				if(current.time_stamp - login_list[tmp_id].time_stamp < ONE_MONTH) {
 					black_trade_login_info.push_back(login_list[tmp_id]);
 				}
