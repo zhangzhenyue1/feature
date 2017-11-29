@@ -1301,7 +1301,7 @@ string update_global_info(int feature_index, string user_id, vector<login_data> 
 	} else
 		feature_index += 2;*/
 
-	int black_size = 0;
+	/*int black_size = 0;
 	if(black_total_device_map.find(login.device) != black_total_device_map.end()) {
 		ss << ++feature_index << ":" << black_total_device_map.size() << " ";
 		ss << ++feature_index << ":" << black_total_device_map.at(login.device).at("sum") << " ";
@@ -1383,7 +1383,7 @@ string update_global_info(int feature_index, string user_id, vector<login_data> 
 		}
 	}else{
 		feature_index += 2;
-	}
+	}*/
 
 	return ss.str();
 }
@@ -1691,6 +1691,7 @@ string update_last_login_info(int feature_index, vector<login_data> login_list, 
 		ss << ++feature_index << ":" << login_list[before_index].time_long << " ";
 		ss << ++feature_index << ":" << (login_list[before_index].time_long - login.time_long) << " ";
 		ss << ++feature_index << ":" << log(max_time_long + login.time_long - login_list[before_index].time_long + 1) << " ";
+
 	}else {
 		feature_index += 12;
 	}
@@ -1919,6 +1920,28 @@ string update_user_history_login_info1(int feature_index, vector<login_data> log
 			get_max_min_avg(ss, feature_index, time_diff);
 		else
 			feature_index += 3;
+
+		int before_index = index - 1;
+		if(login_list[before_index].device != login.device 
+			&& login_list[before_index].ip != login.ip
+			&& login_list[before_index].city != login.city) {
+			ss << ++feature_index << ":1 ";
+		}
+
+		/*int login_cnt_tmp = 0;
+		for(int idx = index - 1; idx > 0; idx--) {
+			if(((login_list[index].time_stamp - login_list[id].time_stamp) > 3600*24))
+				continue;
+			if(login_list[before_index].device == login.device 
+				&& login_list[before_index].ip == login.ip
+				&& login_list[before_index].city == login.city
+				&& login_list[before_index].result == "1"
+				&& login.result == "1")
+				login_cnt_tmp++;
+			else
+				break;
+		}
+		ss << ++feature_index << ":" << login_cnt_tmp << " ";*/
 	}
 
 	return ss.str();
@@ -1936,11 +1959,11 @@ string update_user_history_login_info2(int feature_index, vector<login_data> log
 		long max_time_diff = 0;
 		long min_time_diff = 0;
 		int con_login_cnt = 0;
-		/*for(int id = index-1; id >= 0; id--) {
-			if(index - id > 5) {
+		for(int id = index-1; id >= 0; id--) {
+			//if(index - id > 5) {
 			//if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
-				continue;
-			}
+			//	continue;
+			//}
 			if(login_list[index].device == login_list[id].device
 				&& login_list[index].ip == login_list[id].ip
 				&& login_list[index].city == login_list[id].city
@@ -1957,7 +1980,7 @@ string update_user_history_login_info2(int feature_index, vector<login_data> log
 		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << con_login_cnt << " ";
 
-		max_time_diff = 0;
+		/*max_time_diff = 0;
 		min_time_diff = 0;
 		con_login_cnt = 0;
 		for(int id = index-1; id >= 0; id--) {
@@ -2925,11 +2948,7 @@ bool transfer_data2() {
 		int tmp_size = login_list[index].trade_vec.size();
 		login_it->second = login_list;
 		
-
-
-		for(int id = 0; id < (login_it->second)[index].trade_vec.size(); id++) {
-			out_trade((login_it->second)[index].trade_vec[id]);
-		}
+		out_trade((login_it->second)[index].trade_vec[(login_it->second)[index].trade_vec.size() - 1]);
 		part3_size++;
 		generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
 		update_trade_total_device_map(login_list[index], login_list[index].user_id);
