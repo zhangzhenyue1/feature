@@ -2828,25 +2828,6 @@ bool transfer_data2() {
 	for(set<trade_data>::iterator total_trade_it = total_trade_map.begin(); 
 				total_trade_it != total_trade_map.end(); ++total_trade_it) {
 		trade_data current = *total_trade_it;
-		if(debug_ttt == 0 && current.time_stamp > 1422720000L) {
-			debug_ttt = 1;
-			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
-		}else if (debug_ttt == 1 && current.time_stamp > 1425139200L) {
-			debug_ttt = 2;
-			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
-		}else if (debug_ttt == 2 && current.time_stamp > 1427817600L) {
-			debug_ttt = 3;
-			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
-		}else if (debug_ttt == 3 && current.time_stamp > 1430409600L) {
-			debug_ttt = 4;
-			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
-		}else if (debug_ttt == 4 && current.time_stamp > 1433088000L) {
-			debug_ttt = 5;
-			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
-		}else if (debug_ttt == 5 && current.time_stamp > 1435680000L) {
-			debug_ttt = 6;
-			cout << "process data size " << size_num << ", time " << current.time_stamp << endl;
-		}
 		//if(size_num%10000 == 0)
 		//	cout << "process data size " << size_num << ", time " << current.time_stamp << endl; 
 
@@ -2855,7 +2836,7 @@ bool transfer_data2() {
 			continue;
 		long time_stamp = current.time_stamp;
 
-		for(; total_login_it != total_login_map.end(); total_login_it++) {
+		/*for(; total_login_it != total_login_map.end(); total_login_it++) {
 			if((*total_login_it).time_stamp < current.time_stamp) {
 				update_total_device_map(*total_login_it, (*total_login_it).user_id);
 				update_total_ip_map(*total_login_it, (*total_login_it).user_id);
@@ -2898,7 +2879,7 @@ bool transfer_data2() {
 				}else
 					break;
 			}
-		}
+		}*/
 
 		vector<trade_data> trade_list = total_trade_vec.at(user_id);
 		int trade_index = 0;
@@ -2921,6 +2902,15 @@ bool transfer_data2() {
 
 		int index = -1;
 		int login_index = 0;
+
+		for(; login_index < login_list.size(); login_index++) {
+			if(login_list[login_index].device == "377722") {
+				DEBUG_TEST = true;
+				break;
+			}
+			DEBUG_TEST = false;
+		}
+		login_index = 0;
 		for(; login_index < login_list.size(); login_index++) {
 			if(login_list[login_index].time_stamp > current.time_stamp)
 				break;
@@ -2950,9 +2940,9 @@ bool transfer_data2() {
 		
 		out_trade((login_it->second)[index].trade_vec[(login_it->second)[index].trade_vec.size() - 1]);
 		part3_size++;
-		generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
-		update_trade_total_device_map(login_list[index], login_list[index].user_id);
-		update_trade_total_ip_map(login_list[index], login_list[index].user_id);
+		//generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
+		//update_trade_total_device_map(login_list[index], login_list[index].user_id);
+		//update_trade_total_ip_map(login_list[index], login_list[index].user_id);
 		if(current.label == 0) {
 			if(index > 0)
 				valid_trade_login_info.push_back(login_list[index - 1]);
