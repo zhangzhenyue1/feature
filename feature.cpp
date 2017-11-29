@@ -2943,7 +2943,7 @@ bool transfer_data2() {
 		//generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
 		//update_trade_total_device_map(login_list[index], login_list[index].user_id);
 		//update_trade_total_ip_map(login_list[index], login_list[index].user_id);
-		if(current.label == 0) {
+		if(current.label == 0 && current.time_stamp < 1435680000L) {
 			if(index > 0)
 				valid_trade_login_info.push_back(login_list[index - 1]);
 			/*for(int tmp_id = 0; tmp_id < index; tmp_id++) {
@@ -2953,7 +2953,7 @@ bool transfer_data2() {
 			}*/
 			valid_trade_login_info.push_back(login_list[index]);
 		}
-		else {
+		else if(current.label == 1 && current.time_stamp < 1435680000L) {
 			if(index > 0)
 				black_trade_login_info.push_back(login_list[index - 1]);
 			/*for(int tmp_id = 0; tmp_id < index; tmp_id++) {
