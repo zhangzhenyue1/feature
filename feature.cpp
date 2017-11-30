@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <time.h>
+#include <unordered_map>
 
 #define N 9999
 #define DOUBLE_MAX 1.79e+308
@@ -2940,36 +2941,59 @@ bool transfer_data2() {
 		
 		out_trade((login_it->second)[index].trade_vec[(login_it->second)[index].trade_vec.size() - 1]);
 		part3_size++;
-		//generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
+		generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
 		//update_trade_total_device_map(login_list[index], login_list[index].user_id);
 		//update_trade_total_ip_map(login_list[index], login_list[index].user_id);
 		if(current.label == 0 && current.time_stamp < 1435680000L) {
-			if(index > 0)
-				valid_trade_login_info.push_back(login_list[index - 1]);
+			//if(index > 0)
+			//	valid_trade_login_info.push_back(login_list[index - 1]);
 			/*for(int tmp_id = 0; tmp_id < index; tmp_id++) {
 				if(current.time_stamp - login_list[tmp_id].time_stamp < ONE_MONTH) {
 					valid_trade_login_info.push_back(login_list[tmp_id]);
 				}
 			}*/
-			valid_trade_login_info.push_back(login_list[index]);
+			//valid_trade_login_info.push_back(login_list[index]);
 		}
 		else if(current.label == 1 && current.time_stamp < 1435680000L) {
-			if(index > 0)
-				black_trade_login_info.push_back(login_list[index - 1]);
+			//if(index > 0)
+			//	black_trade_login_info.push_back(login_list[index - 1]);
 			/*for(int tmp_id = 0; tmp_id < index; tmp_id++) {
 				if(current.time_stamp - login_list[tmp_id].time_stamp < ONE_MONTH) {
 					black_trade_login_info.push_back(login_list[tmp_id]);
 				}
 			}*/
-			black_trade_login_info.push_back(login_list[index]);
+			//black_trade_login_info.push_back(login_list[index]);
 		}
 		size_num++;
 	}
 	cout << "finish generate sample, total sample size " << size_num << endl;
 	cout << "total change label " << change_label_cnt << endl;
 
-	if(DEBUG_TEST)
-		return 0;
+	/*int pos_t1 = 0, pos_t2 = 0, neg_t1 = 0, neg_t2 = 0;
+	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
+		vector<login_data> login_list = login_it->second;
+		bool status = false;
+		for(int login_index = 0; login_index < login_list.size(); login_index++) {
+			if(login_list[login_index].device == "835072") {
+				status = true;
+			}
+			for(int jj = 0; jj < login_list[login_index].trade_vec.size(); jj++) {
+				if(login_list[login_index].trade_vec[jj].label == 1 && status)
+					pos_t1++;
+				else if(login_list[login_index].trade_vec[jj].label == 0 && status)
+					neg_t1++;
+				else if(login_list[login_index].trade_vec[jj].label == 1 && status == false)
+					pos_t2++;
+				else if(login_list[login_index].trade_vec[jj].label == 0 && status == false)
+					neg_t2++;
+			}
+		}
+	}
+
+	cout << "debug " << pos_t1 << " " << neg_t1 << " " << pos_t2 << " " << neg_t2 << endl;*/
+
+	//if(DEBUG_TEST)
+	//	return 0;
 	/*write_sample_raw_data(total_login_vec);
 
 	cout << "begin to write zero sample" << endl;
