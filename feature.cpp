@@ -152,6 +152,9 @@ map<string, map<string, int> > discrete_map;
 map<string, map<string, int> > device_user_map;
 map<string, map<string, int> > ip_user_map;
 
+map<string, vector<login_data> > device_login_detail;
+map<string, int> device_status_detail;
+
 set<login_data> total_login_map;
 set<trade_data> total_trade_map;
 map<string, map<string, int> > total_device_map;
@@ -2520,6 +2523,8 @@ string update_disc_info(int feature_index, vector<login_data> login_list, int in
 string update_graph_info(int feature_index, vector<login_data> login_list, int index, long time_threshold, int trade_size) {
 	stringstream ss;
 
+	string device_id = login_list[index].device;
+
 	int graph_id = 0;
 	int graph_size = 0;
 	//for(int id = 0; id < index; id++) {
@@ -2536,12 +2541,16 @@ string update_graph_info(int feature_index, vector<login_data> login_list, int i
 		ss << ++feature_index << ":" << graph_size << " ";
 
 		int current_status = 0;
-		if(device_to_graph_id.find(login_list[index].device) != device_to_graph_id.end()) {
+		if(device_to_graph_id.find(device_id) != device_to_graph_id.end()) {
 			current_status = 1;
-			ss << ++feature_index << ":" << (device_device_map.at(login_list[index].device)).size() << " ";
+			ss << ++feature_index << ":" << (device_device_map.at(device_id)).size() << " ";
 		}else {
 			feature_index += 1;
 		}
+		if(device_status_detail.find(device_id) != device_status_detail.end()) 
+			ss << ++feature_index << ":" << device_status_detail.at(device_id) + 1;
+		else
+			feature_index++;
 		
 		unordered_set<string> device_set;
 		int total_device_cnt = 0;
@@ -2551,10 +2560,13 @@ string update_graph_info(int feature_index, vector<login_data> login_list, int i
 		double device_per_device_sum = 0;
 		int max_user_cnt = 0;
 		int max_device_cnt = 0;
+		int black_deivce_cnt = 0;
 		for(int id = index - 1; id >= 0; id--) {
 			if(login_list[index].time_stamp - login_list[id].time_stamp > time_threshold)
 				continue;
 			total_device_cnt++;
+			if(device_status_detail.find(device_id) != device_status_detail.end() && device_status_detail.at(device_id) == 1)
+				black_deivce_cnt++;
 			if(device_to_graph_id.find(login_list[id].device) == device_to_graph_id.end()) {
 				continue;
 			}else {
@@ -2578,6 +2590,7 @@ string update_graph_info(int feature_index, vector<login_data> login_list, int i
 			ss << ++feature_index << ":" << graph_device_cnt << " ";
 			ss << ++feature_index << ":" << max_user_cnt << " ";
 			ss << ++feature_index << ":" << max_device_cnt << " ";
+			ss << ++feature_index << ":" << black_deivce_cnt << " ";
 			ss << ++feature_index << ":" << device_per_user/graph_device_cnt << " ";
 			ss << ++feature_index << ":" << device_per_device/graph_device_cnt << " ";
 		}
@@ -2651,8 +2664,8 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	feature_index += 100;
 	//cout << feature_index << endl;
 
-	ss << update_login_error_info(feature_index, login_list, index, i, trade_size);//9
-	feature_index += 100;
+	//ss << update_login_error_info(feature_index, login_list, index, i, trade_size);//9
+	//feature_index += 100;
 	//cout << feature_index << endl;
 
 	ss << update_disc_info(feature_index, login_list, index, i, trade_size);//62
@@ -3181,7 +3194,15 @@ bool transfer_data2() {
 		generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
 		//update_trade_total_device_map(login_list[index], login_list[index].user_id);
 		//update_trade_total_ip_map(login_list[index], login_list[index].user_id);
-		if(current.label == 0 && current.time_stamp < 1435680000L) {
+		//map<string, vector<login_data> > device_login_detail;
+		//map<string, int> device_status_detail;
+		if(current.label == 0 && current.time_stamp < 1433088000L) { //1435680000L
+			if(device_status_detail.find(login_list[index].device) == device_status_detail.end()) {
+				device_status_detail.insert(make_pair(login_list[index].device, 0));
+			}else {
+				map<string, int>::iterator status_iter = device_status_detail.find(login_list[index].device);
+				status_iter->second = 0;
+			}
 			//if(index > 0)
 			//	valid_trade_login_info.push_back(login_list[index - 1]);
 			/*for(int tmp_id = 0; tmp_id < index; tmp_id++) {
@@ -3191,7 +3212,13 @@ bool transfer_data2() {
 			}*/
 			//valid_trade_login_info.push_back(login_list[index]);
 		}
-		else if(current.label == 1 && current.time_stamp < 1435680000L) {
+		else if(current.label == 1 && current.time_stamp < 1433088000L) {
+			if(device_status_detail.find(login_list[index].device) == device_status_detail.end()) {
+				device_status_detail.insert(make_pair(login_list[index].device, 1));
+			}else {
+				map<string, int>::iterator status_iter = device_status_detail.find(login_list[index].device);
+				status_iter->second = 1;
+			}
 			//if(index > 0)
 			//	black_trade_login_info.push_back(login_list[index - 1]);
 			/*for(int tmp_id = 0; tmp_id < index; tmp_id++) {
@@ -3201,6 +3228,18 @@ bool transfer_data2() {
 			}*/
 			//black_trade_login_info.push_back(login_list[index]);
 		}
+		/*if(login_list[index].trade_vec.size() == 1 && device_device_map.find(login_list[index].device) != device_device_map.end()) {
+			if(device_login_detail.find(login_list[index].device) == device_login_detail.end()) {
+				vector<login_data> tmp;
+				tmp.push_back(login_list[index]);
+				device_login_detail.insert(login_list[index].device, tmp);
+			}else {
+				map<string, vector<login_data> >::iterator status_iter = device_login_detail.find(login_list[index].device);
+				vector<login_data> tmp = status_iter->second;
+				tmp.push_back(login_list[index]);
+				status_iter->second = tmp;
+			}
+		}*/
 		size_num++;
 	}
 	cout << "finish generate sample, total sample size " << size_num << endl;
