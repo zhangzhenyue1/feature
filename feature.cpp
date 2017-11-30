@@ -14,6 +14,7 @@
 #include <math.h>
 #include <time.h>
 #include <unordered_map>
+#include <unordered_set>
 
 #define N 9999
 #define DOUBLE_MAX 1.79e+308
@@ -164,6 +165,12 @@ map<string, map<string, int> > black_total_ip_map;
 map<string, map<string, int> > gray_total_device_map;
 map<string, map<string, int> > gray_total_ip_map;
 
+unordered_map<string, vector<string> > user_device_vector;
+unordered_map<string, unordered_map<string, int> > device_device_map;
+unordered_map<string, int> device_graph;
+unordered_map<string, int> device_to_graph_id;
+unordered_map<string, int> device_to_graph_size;
+
 int train_pos = 0, train_neg = 0, test_pos = 0, test_neg = 0, valid_pos = 0, valid_neg = 0;
 int case1_pos = 0, case1_neg = 0, case2_pos = 0, case2_neg = 0;
 
@@ -309,6 +316,159 @@ bool init_discrete_map() {
 	discrete_map.insert(make_pair("type", tmp));
 	upload_device_map("total_device_map");
 	upload_ip_map("total_ip_map");
+}
+
+bool get_user_device_vector() {
+	for(map<string, map<string, int> >::iterator it = device_user_map.begin(); 
+			it != device_user_map.end(); it++) {
+		string device_id = it->first;
+		map<string, int> device_map_tmp = it->second;
+		if(device_map_tmp.size() < 3)
+			continue;
+		for(map<string, int>::iterator mp_it = device_map_tmp.begin(); mp_it != device_map_tmp.end(); mp_it++) {
+			string user_id = mp_it->first;
+			if(user_id == "sum" || user_id.length() < 1)
+				continue;
+			unordered_map<string, vector<string> >::iterator st_it = user_device_vector.find(user_id);
+			if(st_it == user_device_vector.end()) {
+				vector<string> device;
+				device.push_back(device_id);
+				user_device_vector.insert(make_pair(user_id, device));
+			}else {
+				vector<string> device = st_it->second;
+				device.push_back(device_id);
+				st_it->second = device;
+			}
+		}
+	}
+	cout << "user size " << user_device_vector.size() << endl;
+}
+
+bool calc_device_device_map() {
+	int cnt = 0;
+	for(unordered_map<string, vector<string> >::iterator it = user_device_vector.begin(); it != user_device_vector.end(); it++) {
+		vector<string> device_vec = it->second;
+		cnt += device_vec.size();
+		for(int i =0; i < device_vec.size(); i++) {
+			for(int j = i+1; j < device_vec.size(); j++) {
+				string device1 = device_vec[i];
+				string device2 = device_vec[j];
+
+				unordered_map<string, unordered_map<string, int> >::iterator it1 = device_device_map.find(device1);
+				if(it1 == device_device_map.end()) {
+					unordered_map<string, int> tmp;
+					tmp.insert(make_pair(device2, 1));
+					device_device_map.insert(make_pair(device1, tmp));
+				}else {
+					unordered_map<string, int> tmp = it1->second;
+					unordered_map<string, int>::iterator it2 = tmp.find(device2);
+					if(it2 == tmp.end()) {
+						tmp.insert(make_pair(device2, 1));
+					}else {
+						int size = it2->second;
+						size = size + 1;
+						it2->second = size;
+					}
+					it1->second = tmp;
+				}
+
+				unordered_map<string, unordered_map<string, int> >::iterator it_1 = device_device_map.find(device2);
+				if(it_1 == device_device_map.end()) {
+					unordered_map<string, int> tmp;
+					tmp.insert(make_pair(device1, 1));
+					device_device_map.insert(make_pair(device2, tmp));
+				}else {
+					unordered_map<string, int> tmp = it_1->second;
+					unordered_map<string, int>::iterator it2 = tmp.find(device1);
+					if(it2 == tmp.end()) {
+						tmp.insert(make_pair(device1, 1));
+					}else {
+						int size = it2->second;
+						size = size + 1;
+						it2->second = size;
+					}
+					it_1->second = tmp;
+				}
+			}
+		}
+	}
+	cout << "device total " << cnt << endl;
+}
+
+bool init_device_graph() {
+	int index = 10;
+	for(unordered_map<string, unordered_map<string, int> >::iterator it = device_device_map.begin(); 
+			it != device_device_map.end(); ++it) {
+		string device_id = it->first;
+		device_graph.insert(make_pair(device_id, index));
+		index++;
+	}
+}
+
+bool calc_continus_graph() {
+	bool status = true;
+	int round_id = 0;
+	while(status) {
+		round_id++;
+		cout << "calc graph, round " << round_id << endl;
+		status = false;
+		for(unordered_map<string, unordered_map<string, int> >::iterator it = device_device_map.begin(); 
+				it != device_device_map.end(); ++it) {
+			unordered_map<string, int>::iterator graph_it = device_graph.find(it->first);
+			int index = graph_it->second;
+			unordered_map<string, int> tmp = it->second;
+			for(unordered_map<string, int>::iterator iter = tmp.begin(); 
+					iter != tmp.end(); ++iter) {
+				if(device_graph.at(iter->first) < index) {
+					status = true;
+					index = device_graph.at(iter->first);
+				}
+			}
+			graph_it->second = index;
+		}
+	}
+	unordered_map<int, int> graph_map;
+	unordered_map<int, int> graph_index;
+	int idx = 1;
+	for(unordered_map<string, int>::iterator iter = device_graph.begin(); 
+					iter != device_graph.end(); ++iter) {
+		int index = iter->second;
+		unordered_map<int, int>::iterator it = graph_map.find(index);
+		if(it == graph_map.end()) {
+			graph_index.insert(make_pair(index, idx));
+			idx++;
+			graph_map.insert(make_pair(index, 1));
+		}else{
+			int size = it->second;
+			it->second = size + 1;
+		}
+	}
+	
+	for(unordered_map<string, int>::iterator iter = device_graph.begin(); 
+					iter != device_graph.end(); ++iter) {
+		string device_id = iter->first;
+		int index = iter->second;
+		int graph_id = graph_index.at(index);
+		int graph_size = graph_map.at(index);
+		device_to_graph_id.insert(make_pair(device_id, graph_id));
+		device_to_graph_size.insert(make_pair(device_id, graph_size));
+	}
+
+	for(unordered_map<string, unordered_map<string, int> >::iterator it = device_device_map.begin(); 
+				it != device_device_map.end(); ++it) {
+		int cnt = 0;
+		unordered_map<string, int> tmp = it->second;
+		for(unordered_map<string, int>::iterator iter = tmp.begin(); 
+					iter != tmp.end(); ++iter) {
+			cnt += iter->second;
+		}
+		tmp.insert(make_pair("sum", cnt));
+		it->second = tmp;
+	}
+
+	//for(unordered_map<int, int>::iterator iter = graph_map.begin(); iter != graph_map.end(); iter++) {
+	//	cout << "graph index " << iter->first << ", graph size " << iter->second << endl;
+	//}
 }
 
 bool update_device_map(login_data data, string user_id) {
@@ -1919,15 +2079,14 @@ string update_user_history_login_info1(int feature_index, vector<login_data> log
 
 		if(time_diff.size() > 0)
 			get_max_min_avg(ss, feature_index, time_diff);
-		else
-			feature_index += 3;
+		feature_index += 3;
 
-		int before_index = index - 1;
+		/*int before_index = index - 1;
 		if(login_list[before_index].device != login.device 
 			&& login_list[before_index].ip != login.ip
 			&& login_list[before_index].city != login.city) {
 			ss << ++feature_index << ":1 ";
-		}
+		}*/
 
 		/*int login_cnt_tmp = 0;
 		for(int idx = index - 1; idx > 0; idx--) {
@@ -1960,7 +2119,7 @@ string update_user_history_login_info2(int feature_index, vector<login_data> log
 		long max_time_diff = 0;
 		long min_time_diff = 0;
 		int con_login_cnt = 0;
-		for(int id = index-1; id >= 0; id--) {
+		/*for(int id = index-1; id >= 0; id--) {
 			//if(index - id > 5) {
 			//if(current.time_stamp - login_list[id].time_stamp > time_threshold) {
 			//	continue;
@@ -1979,7 +2138,7 @@ string update_user_history_login_info2(int feature_index, vector<login_data> log
 		}
 		ss << ++feature_index << ":" << log(min_time_diff + 1) << " ";
 		ss << ++feature_index << ":" << log(max_time_diff + 1) << " ";
-		ss << ++feature_index << ":" << con_login_cnt << " ";
+		ss << ++feature_index << ":" << con_login_cnt << " ";*/
 
 		/*max_time_diff = 0;
 		min_time_diff = 0;
@@ -2358,6 +2517,77 @@ string update_disc_info(int feature_index, vector<login_data> login_list, int in
 	return ss.str();
 }
 
+string update_graph_info(int feature_index, vector<login_data> login_list, int index, long time_threshold, int trade_size) {
+	stringstream ss;
+
+	int graph_id = 0;
+	int graph_size = 0;
+	//for(int id = 0; id < index; id++) {
+	for(int id = 0; id < login_list.size(); id++) {
+		login_data login = login_list[id];
+		if(device_to_graph_id.find(login.device) != device_to_graph_id.end()) {
+			graph_id = device_to_graph_id.at(login.device);
+			graph_size = device_to_graph_size.at(login.device);
+			break;
+		}
+	}
+	if(graph_id > 0) {
+		ss << ++feature_index << ":" << graph_id << " ";
+		ss << ++feature_index << ":" << graph_size << " ";
+
+		int current_status = 0;
+		if(device_to_graph_id.find(login_list[index].device) != device_to_graph_id.end()) {
+			current_status = 1;
+			ss << ++feature_index << ":" << (device_device_map.at(login_list[index].device)).size() << " ";
+		}else {
+			feature_index += 1;
+		}
+		
+		unordered_set<string> device_set;
+		int total_device_cnt = 0;
+		int graph_device_cnt = 0;
+		double device_per_user = 0.0;
+		double device_per_device = 0.0;
+		double device_per_device_sum = 0;
+		int max_user_cnt = 0;
+		int max_device_cnt = 0;
+		for(int id = index - 1; id >= 0; id--) {
+			if(login_list[index].time_stamp - login_list[id].time_stamp > time_threshold)
+				continue;
+			total_device_cnt++;
+			if(device_to_graph_id.find(login_list[id].device) == device_to_graph_id.end()) {
+				continue;
+			}else {
+				graph_device_cnt++;
+				device_set.insert(login_list[id].device);
+			}
+		}
+		for(unordered_set<string>::iterator it = device_set.begin(); it != device_set.end(); it++) {
+			int user_cnt = device_user_map.at(*it).size();
+			device_per_user += user_cnt;
+			if(user_cnt > max_user_cnt)
+				max_user_cnt = user_cnt;
+			int device_cnt = device_device_map.at(*it).size();
+			device_per_device += device_cnt;
+			if(device_cnt > max_device_cnt)
+				max_device_cnt = device_cnt;
+		}
+		ss << ++feature_index << ":" << total_device_cnt << " ";
+		if(graph_device_cnt > 0) {
+			ss << ++feature_index << ":" << device_set.size() << " ";
+			ss << ++feature_index << ":" << graph_device_cnt << " ";
+			ss << ++feature_index << ":" << max_user_cnt << " ";
+			ss << ++feature_index << ":" << max_device_cnt << " ";
+			ss << ++feature_index << ":" << device_per_user/graph_device_cnt << " ";
+			ss << ++feature_index << ":" << device_per_device/graph_device_cnt << " ";
+		}
+	}else {
+		feature_index += 7;
+	}
+
+	return ss.str();
+}
+
 bool generate_sample(vector<login_data> login_list, int i, int index, string user_id, int trade_size) {
 	stringstream ss;
 	
@@ -2381,8 +2611,8 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	feature_index += 100;
 	//cout << feature_index << endl;
 
-	ss << update_user_history_info(feature_index, login_list, index, EIGHT_MONTH, trade_size);//45
-	feature_index += 100;
+	//ss << update_user_history_info(feature_index, login_list, index, FIVE_MONTH, trade_size);//45
+	//feature_index += 100;
 	//cout << feature_index << endl;
 
 	//update_user_history_info(ss, feature_index, login_list, index, FIVE_MONTH, trade_size);//45
@@ -2428,6 +2658,9 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	ss << update_disc_info(feature_index, login_list, index, i, trade_size);//62
 	feature_index += 100;
 	//cout << feature_index << endl;
+
+	ss << update_graph_info(feature_index, login_list, index, 3600L, trade_size);
+	feature_index += 100;
 	
 
 	if((time_stamp < 1430409600L)){
@@ -2818,6 +3051,11 @@ bool transfer_data2() {
 
 	transfer_login_and_trade();
 
+	get_user_device_vector();
+	calc_device_device_map();
+	init_device_graph();
+	calc_continus_graph();
+
 	set<login_data>::iterator total_login_it = total_login_map.begin();
 	map<string, int> user_trade_cnt_map;
 	
@@ -2904,13 +3142,13 @@ bool transfer_data2() {
 		int index = -1;
 		int login_index = 0;
 
-		for(; login_index < login_list.size(); login_index++) {
+		/*for(; login_index < login_list.size(); login_index++) {
 			if(login_list[login_index].device == "377722") {
 				DEBUG_TEST = true;
 				break;
 			}
 			DEBUG_TEST = false;
-		}
+		}*/
 		login_index = 0;
 		for(; login_index < login_list.size(); login_index++) {
 			if(login_list[login_index].time_stamp > current.time_stamp)
@@ -2924,8 +3162,8 @@ bool transfer_data2() {
 			}
 		}
 
+		out_trade(current);
 		if(index < 0) {
-			out_trade(current);
 			map<string, int>::iterator it = user_trade_cnt_map.find(user_id);
 			trade_index = it->second;
 			it->second = trade_index + 1;
@@ -2939,7 +3177,6 @@ bool transfer_data2() {
 		int tmp_size = login_list[index].trade_vec.size();
 		login_it->second = login_list;
 		
-		out_trade((login_it->second)[index].trade_vec[(login_it->second)[index].trade_vec.size() - 1]);
 		part3_size++;
 		generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
 		//update_trade_total_device_map(login_list[index], login_list[index].user_id);

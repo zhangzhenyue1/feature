@@ -56,7 +56,6 @@ bool upload_device_map(string path) {
 	}
 	if(device_user_map.size() > 0) {
 		cout << "device size " << device_user_map.size() << endl;
-		cout << "835072 " << device_user_map.at("835072").size() << endl;
 		is_cache = true;
 	}else {
 		is_cache = false;
@@ -170,16 +169,11 @@ bool calc_continus_graph() {
 			}
 			graph_it->second = index;
 		}
-		//if(round_id > 2)
-		//	break;
 	}
-	int size_tmp = device_graph.at("835072");
 	map<int, int> graph_map;
 	for(unordered_map<string, int>::iterator iter = device_graph.begin(); 
 					iter != device_graph.end(); ++iter) {
 		int index = iter->second;
-		//if(index != size_tmp)
-		//	cout << "debug " << iter->first << " " << iter->second << endl;
 		map<int, int>::iterator it = graph_map.find(index);
 		if(it == graph_map.end()) {
 			graph_map.insert(make_pair(index, 1));
