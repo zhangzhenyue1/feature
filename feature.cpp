@@ -86,7 +86,8 @@ bool device_compare(const device_cnt & a, const device_cnt & b) {
 
 struct device_hash {
 	std::size_t operator () (const device_cnt &t) const {
-		return atoi(t.user_id.c_str());
+		//return atoi(t.user_id.c_str());
+		return rand();
 	}
 };
 
@@ -3295,6 +3296,78 @@ bool transfer_data2() {
 	cout << "finish generate sample, total sample size " << size_num << endl;
 	cout << "total change label " << change_label_cnt << endl;
 
+	/*map<string, map<string, int> > device_type_info;
+	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
+		vector<login_data> login_list = login_it->second;
+		for(int idx = 0; idx < login_list.size(); idx++) {
+			string device = login_list[idx].device;
+			string type = login_list[idx].type;
+			if(device_type_info.find(device) == device_type_info.end()) {
+				map<string, int> tmp;
+				tmp.insert(make_pair(type, 1));
+				device_type_info.insert(make_pair(device, tmp));
+			}else {
+				map<string, map<string, int> >::iterator tmp_it = device_type_info.find(device);
+				map<string, int> tmp = tmp_it->second;
+				if(tmp.find(type) == tmp.end()) {
+					tmp.insert(make_pair(type, 1));
+				}else{
+					map<string, int>::iterator iit = tmp.find(type);
+					int size = iit->second;
+					iit->second = size + 1;
+				}
+				tmp_it->second = tmp;
+			}
+		}
+	}
+
+	string device_type = "device_type_log";
+	ofstream device_type_log(device_type.c_str());
+
+	for(map<string, map<string, int> >::iterator map_it = device_type_info.begin(); map_it != device_type_info.end(); map_it++) {
+		device_type_log << map_it->first << " ";
+		for(map<string, int>::iterator iit = (map_it->second).begin(); iit != (map_it->second).end(); iit++) {
+			device_type_log << iit->first << ":" << iit->second << " ";
+		}
+		device_type_log << endl;
+	}*/
+
+	/*map<string, map<string, int> > device_log_from_info;
+	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
+		vector<login_data> login_list = login_it->second;
+		for(int idx = 0; idx < login_list.size(); idx++) {
+			string device = login_list[idx].device;
+			string log_from = login_list[idx].log_from;
+			if(device_log_from_info.find(device) == device_log_from_info.end()) {
+				map<string, int> tmp;
+				tmp.insert(make_pair(log_from, 1));
+				device_log_from_info.insert(make_pair(device, tmp));
+			}else {
+				map<string, map<string, int> >::iterator tmp_it = device_log_from_info.find(device);
+				map<string, int> tmp = tmp_it->second;
+				if(tmp.find(log_from) == tmp.end()) {
+					tmp.insert(make_pair(log_from, 1));
+				}else{
+					map<string, int>::iterator iit = tmp.find(log_from);
+					int size = iit->second;
+					iit->second = size + 1;
+				}
+				tmp_it->second = tmp;
+			}
+		}
+	}
+
+	string device_log_from = "device_log_from_log";
+	ofstream device_log_from_log(device_log_from.c_str());
+
+	for(map<string, map<string, int> >::iterator map_it = device_log_from_info.begin(); map_it != device_log_from_info.end(); map_it++) {
+		device_log_from_log << map_it->first << " ";
+		for(map<string, int>::iterator iit = (map_it->second).begin(); iit != (map_it->second).end(); iit++) {
+			device_log_from_log << iit->first << ":" << iit->second << " ";
+		}
+		device_log_from_log << endl;
+	}*/
+
 	map<string, unordered_set<device_cnt, device_hash> > device_detail_map;
 	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
 		vector<login_data> login_list = login_it->second;
@@ -3356,6 +3429,8 @@ bool transfer_data2() {
 	ofstream device_out_file(device_file.c_str());
 	string device_file_log = "device_status_detail_log";
 	ofstream device_out_file_log(device_file_log.c_str());
+	string device_file_debug = "device_status_detail_debug";
+	ofstream device_out_file_debug(device_file_debug.c_str());
 
 
 	for(map<string, unordered_set<device_cnt, device_hash> >::iterator device_it = device_detail_map.begin(); device_it != device_detail_map.end(); device_it++) {
@@ -3367,10 +3442,19 @@ bool transfer_data2() {
 			tmp_vector.push_back((*tmp_it));
 		}
 		sort(tmp_vector.begin(), tmp_vector.end(), device_compare);
+		int device_status1 = false;
+		int device_status2 = false;
 		for(int idx = 0; idx < tmp_vector.size(); idx++) {
 			device_out_file_log << "user id: " << tmp_vector[idx].user_id << ", time str " << tmp_vector[idx].time_str << ", label " << tmp_vector[idx].label << endl;
 			if(tmp_vector[idx].label >= 0)
 				device_out_file << tmp_vector[idx].label;
+			if(tmp_vector[idx].label > 0)
+				device_status1 = true;
+			if(tmp_vector[idx].time_str > "2017-07-00")
+				device_status2 = true;
+		}
+		if(device_status1 && device_status2) {
+			device_out_file_debug << "user_id: " << tmp_vector[0].user_id << " device: " << device_it->first << endl;
 		}
 		device_out_file << " " << endl;
 	}
