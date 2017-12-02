@@ -58,6 +58,38 @@ bool operator<(const trade_data & x,const trade_data & y) {
 	return x.time_stamp < y.time_stamp;  
 }
 
+typedef struct device_cnt{
+	string user_id;
+	string time_str;
+	int label;
+
+	device_cnt& operator=(const device_cnt data) {
+		this->user_id = data.user_id;
+		this->time_str = data.time_str;
+		this->label = data.label;
+	}
+}device_cnt;
+
+bool operator<(const device_cnt & a, const device_cnt & b) {
+	return a.time_str < b.time_str;
+}
+
+bool operator==(const device_cnt & x,const device_cnt & y) {
+	return (x.user_id == y.user_id)
+	     && (x.time_str == y.time_str)
+	     && (x.label == y.label);  
+}
+
+bool device_compare(const device_cnt & a, const device_cnt & b) {
+	return a.time_str < b.time_str;
+}
+
+struct device_hash {
+	std::size_t operator () (const device_cnt &t) const {
+		return atoi(t.user_id.c_str());
+	}
+};
+
 typedef struct login_data{
 	int time_long;
 	string user_id;
@@ -2547,10 +2579,15 @@ string update_graph_info(int feature_index, vector<login_data> login_list, int i
 		}else {
 			feature_index += 1;
 		}
-		if(device_status_detail.find(device_id) != device_status_detail.end()) 
-			ss << ++feature_index << ":" << device_status_detail.at(device_id) + 1;
+		/*if(device_status_detail.find(device_id) != device_status_detail.end()) 
+			ss << ++feature_index << ":" << device_status_detail.at(device_id) << " ";
 		else
 			feature_index++;
+
+		if(device_status_detail.find(device_id) != device_status_detail.end()) 
+			ss << ++feature_index << ":" << device_status_detail.at(device_id) + 1 << " ";
+		else
+			feature_index++;*/
 		
 		unordered_set<string> device_set;
 		int total_device_cnt = 0;
@@ -2561,9 +2598,12 @@ string update_graph_info(int feature_index, vector<login_data> login_list, int i
 		int max_user_cnt = 0;
 		int max_device_cnt = 0;
 		int black_deivce_cnt = 0;
-		for(int id = index - 1; id >= 0; id--) {
-			if(login_list[index].time_stamp - login_list[id].time_stamp > time_threshold)
+		for(int id = index; id >= 0; id--) {
+			//cout << "debug " << login_list[index].time_stamp - login_list[id].time_stamp << " " 
+			//		<< time_threshold << " " << total_device_cnt << endl;
+			if(login_list[index].time_stamp - login_list[id].time_stamp > time_threshold) {
 				continue;
+			}
 			total_device_cnt++;
 			if(device_status_detail.find(device_id) != device_status_detail.end() && device_status_detail.at(device_id) == 1)
 				black_deivce_cnt++;
@@ -2589,8 +2629,10 @@ string update_graph_info(int feature_index, vector<login_data> login_list, int i
 			ss << ++feature_index << ":" << device_set.size() << " ";
 			ss << ++feature_index << ":" << graph_device_cnt << " ";
 			ss << ++feature_index << ":" << max_user_cnt << " ";
-			ss << ++feature_index << ":" << max_device_cnt << " ";
-			ss << ++feature_index << ":" << black_deivce_cnt << " ";
+
+			//ss << ++feature_index << ":" << max_device_cnt << " ";
+			//ss << ++feature_index << ":" << black_deivce_cnt << " ";
+
 			ss << ++feature_index << ":" << device_per_user/graph_device_cnt << " ";
 			ss << ++feature_index << ":" << device_per_device/graph_device_cnt << " ";
 		}
@@ -2668,8 +2710,8 @@ bool generate_sample(vector<login_data> login_list, int i, int index, string use
 	//feature_index += 100;
 	//cout << feature_index << endl;
 
-	ss << update_disc_info(feature_index, login_list, index, i, trade_size);//62
-	feature_index += 100;
+	//ss << update_disc_info(feature_index, login_list, index, i, trade_size);//62
+	//feature_index += 100;
 	//cout << feature_index << endl;
 
 	ss << update_graph_info(feature_index, login_list, index, 3600L, trade_size);
@@ -3169,13 +3211,13 @@ bool transfer_data2() {
 			if(login_list[login_index].result == "1") {
 				index = login_index;
 			}
-			out_login(login_list[login_index]);
+			//out_login(login_list[login_index]);
 			for(int idx = 0; idx < login_list[login_index].trade_vec.size(); idx++) {
-				out_trade(login_list[login_index].trade_vec[idx]);
+				//out_trade(login_list[login_index].trade_vec[idx]);
 			}
 		}
 
-		out_trade(current);
+		//out_trade(current);
 		if(index < 0) {
 			map<string, int>::iterator it = user_trade_cnt_map.find(user_id);
 			trade_index = it->second;
@@ -3228,22 +3270,110 @@ bool transfer_data2() {
 			}*/
 			//black_trade_login_info.push_back(login_list[index]);
 		}
-		/*if(login_list[index].trade_vec.size() == 1 && device_device_map.find(login_list[index].device) != device_device_map.end()) {
-			if(device_login_detail.find(login_list[index].device) == device_login_detail.end()) {
-				vector<login_data> tmp;
-				tmp.push_back(login_list[index]);
-				device_login_detail.insert(login_list[index].device, tmp);
-			}else {
-				map<string, vector<login_data> >::iterator status_iter = device_login_detail.find(login_list[index].device);
-				vector<login_data> tmp = status_iter->second;
-				tmp.push_back(login_list[index]);
-				status_iter->second = tmp;
+		/*if(login_list[index].trade_vec.size() == 1 && 
+			device_device_map.find(login_list[index].device) != device_device_map.end()) {
+			int begin_idx = index;
+			for(; begin_idx > 0; begin_idx--) {
+				if(begin_idx > 0 && login_list[begin_idx - 1].trade_vec.size() > 0)
+					break;
+			}
+			for(; begin_idx <= index; begin_idx++) {
+				if(device_login_detail.find(login_list[begin_idx].device) == device_login_detail.end()) {
+					vector<login_data> tmp;
+					tmp.push_back(login_list[begin_idx]);
+					device_login_detail.insert(make_pair(login_list[begin_idx].device, tmp));
+				}else {
+					map<string, vector<login_data> >::iterator status_iter = device_login_detail.find(login_list[index].device);
+					vector<login_data> tmp = status_iter->second;
+					tmp.push_back(login_list[begin_idx]);
+					status_iter->second = tmp;
+				}
 			}
 		}*/
 		size_num++;
 	}
 	cout << "finish generate sample, total sample size " << size_num << endl;
 	cout << "total change label " << change_label_cnt << endl;
+
+	map<string, unordered_set<device_cnt, device_hash> > device_detail_map;
+	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
+		vector<login_data> login_list = login_it->second;
+		cout << "begin new user --------------------------------------" << endl;
+		for(int login_index = 0; login_index < login_list.size(); login_index++) {
+			out_login(login_list[login_index]);
+			for(int id = 0; id < login_list[login_index].trade_vec.size(); id++) {
+				out_trade(login_list[login_index].trade_vec[id]);
+			}
+
+			if(device_device_map.find(login_list[login_index].device) == device_device_map.end())
+				continue;
+
+			string device = login_list[login_index].device;
+			if(login_list[login_index].trade_vec.size() >= 0) {
+				device_cnt tmp;
+				tmp.user_id = login_list[login_index].user_id;
+				tmp.time_str = login_list[login_index].time_str;
+				tmp.label = -1;
+				if(device_detail_map.find(device) == device_detail_map.end()) {
+					unordered_set<device_cnt, device_hash> tmp_set;
+					tmp_set.insert(tmp);
+					device_detail_map.insert(make_pair(device, tmp_set));
+				}else {
+					map<string, unordered_set<device_cnt, device_hash> >::iterator device_iter = device_detail_map.find(device);
+					unordered_set<device_cnt, device_hash> tmp_set = device_iter->second;
+					tmp_set.insert(tmp);
+					device_iter->second = tmp_set;
+				}
+			}
+			for(int id = 0; id < login_list[login_index].trade_vec.size(); id++) {
+				device_cnt tmp;
+				tmp.user_id = login_list[login_index].user_id;
+				stringstream stream;
+				string result;
+				stream << login_list[login_index].trade_vec[id].time_stamp;
+				stream >> result;
+				time_t tick = (time_t)login_list[login_index].trade_vec[id].time_stamp; 
+				tm _tm = *localtime(&tick);
+				char s[100];
+				strftime(s, sizeof(s), "%Y-%m-%d %H:%M:%S", &_tm);
+				tmp.time_str = s;
+				tmp.label = login_list[login_index].trade_vec[id].label;
+				if(device_detail_map.find(device) == device_detail_map.end()) {
+					unordered_set<device_cnt, device_hash> tmp_set;
+					tmp_set.insert(tmp);
+					device_detail_map.insert(make_pair(device, tmp_set));
+				}else {
+					map<string, unordered_set<device_cnt, device_hash> >::iterator device_iter = device_detail_map.find(device);
+					unordered_set<device_cnt, device_hash> tmp_set = device_iter->second;
+					tmp_set.insert(tmp);
+					device_iter->second = tmp_set;
+				}
+			}
+		}
+	}
+
+	string device_file = "device_status_detail";
+	ofstream device_out_file(device_file.c_str());
+	string device_file_log = "device_status_detail_log";
+	ofstream device_out_file_log(device_file_log.c_str());
+
+
+	for(map<string, unordered_set<device_cnt, device_hash> >::iterator device_it = device_detail_map.begin(); device_it != device_detail_map.end(); device_it++) {
+		device_out_file_log << "----------------------------------" << endl;
+		device_out_file_log << device_it->first << "------" << endl;
+		device_out_file << device_it->first << ": ";
+		vector<device_cnt> tmp_vector;
+		for(unordered_set<device_cnt, device_hash>::iterator tmp_it = (device_it->second).begin(); tmp_it != (device_it->second).end(); tmp_it++) {
+			tmp_vector.push_back((*tmp_it));
+		}
+		sort(tmp_vector.begin(), tmp_vector.end(), device_compare);
+		for(int idx = 0; idx < tmp_vector.size(); idx++) {
+			device_out_file_log << "user id: " << tmp_vector[idx].user_id << ", time str " << tmp_vector[idx].time_str << ", label " << tmp_vector[idx].label << endl;
+			if(tmp_vector[idx].label >= 0)
+				device_out_file << tmp_vector[idx].label;
+		}
+		device_out_file << " " << endl;
+	}
 
 	/*int pos_t1 = 0, pos_t2 = 0, neg_t1 = 0, neg_t2 = 0;
 	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
