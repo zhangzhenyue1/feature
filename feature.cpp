@@ -84,8 +84,34 @@ bool device_compare(const device_cnt & a, const device_cnt & b) {
 	return a.time_str < b.time_str;
 }
 
-struct device_hash {
-	std::size_t operator () (const device_cnt &t) const {
+typedef struct ip_cnt{
+	string user_id;
+	string time_str;
+	int label;
+
+	ip_cnt& operator=(const ip_cnt data) {
+		this->user_id = data.user_id;
+		this->time_str = data.time_str;
+		this->label = data.label;
+	}
+}ip_cnt;
+
+bool operator<(const ip_cnt & a, const ip_cnt & b) {
+	return a.time_str < b.time_str;
+}
+
+bool operator==(const ip_cnt & x,const ip_cnt & y) {
+	return (x.user_id == y.user_id)
+	     && (x.time_str == y.time_str)
+	     && (x.label == y.label);  
+}
+
+bool ip_compare(const ip_cnt & a, const ip_cnt & b) {
+	return a.time_str < b.time_str;
+}
+
+struct ip_hash {
+	std::size_t operator () (const ip_cnt &t) const {
 		//return atoi(t.user_id.c_str());
 		return rand();
 	}
@@ -2772,11 +2798,11 @@ bool generate_zero(trade_data data, int index, vector<trade_data> trade_list) {
 
 	int feature_index = 0;
 	ss << ++feature_index << ":" << index << " ";
-	ss << ++feature_index << ":" << (time_stamp/3600 + 8)%24 << " ";
-	ss << ++feature_index << ":" << ((time_stamp/3600 + 8)/24 + 4)%7 << " ";
+	//ss << ++feature_index << ":" << (time_stamp/3600 + 8)%24 << " ";
+	//ss << ++feature_index << ":" << ((time_stamp/3600 + 8)/24 + 4)%7 << " ";
 	//ss << ++feature_index << ":" << (time_stamp > 1422720000L) << " ";
 
-	if(index > 0) {
+	/*if(index > 0) {
 		ss << ++feature_index << ":" << 
 		(trade_list[index].time_stamp - trade_list[index - 1].time_stamp) << " ";
 		ss << ++feature_index << ":" << 
@@ -2806,7 +2832,7 @@ bool generate_zero(trade_data data, int index, vector<trade_data> trade_list) {
 	if(index > 1) {
 		ss << ++feature_index << ":" << 
 		 (trade_list[index].time_stamp - trade_list[index - 2].time_stamp) << " ";
-	}
+	}*/
 
 	if(DEBUG_TEST) {
 		cout << ss.str() << endl;
@@ -3297,6 +3323,42 @@ bool transfer_data2() {
 	cout << "finish generate sample, total sample size " << size_num << endl;
 	cout << "total change label " << change_label_cnt << endl;
 
+	/*map<string, map<string, int> > device_ip_info;
+	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
+		vector<login_data> login_list = login_it->second;
+		for(int idx = 0; idx < login_list.size(); idx++) {
+			string device = login_list[idx].device;
+			string ip = login_list[idx].ip;
+			if(device_ip_info.find(device) == device_ip_info.end()) {
+				map<string, int> tmp;
+				tmp.insert(make_pair(ip, 1));
+				device_ip_info.insert(make_pair(device, tmp));
+			}else {
+				map<string, map<string, int> >::iterator tmp_it = device_ip_info.find(device);
+				map<string, int> tmp = tmp_it->second;
+				if(tmp.find(ip) == tmp.end()) {
+					tmp.insert(make_pair(ip, 1));
+				}else{
+					map<string, int>::iterator iit = tmp.find(ip);
+					int size = iit->second;
+					iit->second = size + 1;
+				}
+				tmp_it->second = tmp;
+			}
+		}
+	}
+
+	string device_ip = "device_ip_log";
+	ofstream device_ip_log(device_ip.c_str());
+
+	for(map<string, map<string, int> >::iterator map_it = device_ip_info.begin(); map_it != device_ip_info.end(); map_it++) {
+		device_ip_log << map_it->first << " ";
+		for(map<string, int>::iterator iit = (map_it->second).begin(); iit != (map_it->second).end(); iit++) {
+			device_ip_log << iit->first << ":" << iit->second << " ";
+		}
+		device_ip_log << endl;
+	}*/
+
 	/*map<string, map<string, int> > device_type_info;
 	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
 		vector<login_data> login_list = login_it->second;
@@ -3458,6 +3520,96 @@ bool transfer_data2() {
 		}
 		device_out_file << " " << endl;
 	}*/
+
+	map<string, unordered_set<ip_cnt, ip_hash> > ip_detail_map;
+	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
+		vector<login_data> login_list = login_it->second;
+		cout << "begin new user --------------------------------------" << endl;
+		for(int login_index = 0; login_index < login_list.size(); login_index++) {
+			out_login(login_list[login_index]);
+			for(int id = 0; id < login_list[login_index].trade_vec.size(); id++) {
+				out_trade(login_list[login_index].trade_vec[id]);
+			}
+
+			//if(ip_ip_map.find(login_list[login_index].ip) == ip_ip_map.end())
+			//	continue;
+
+			string ip = login_list[login_index].ip;
+			if(login_list[login_index].trade_vec.size() >= 0) {
+				ip_cnt tmp;
+				tmp.user_id = login_list[login_index].user_id;
+				tmp.time_str = login_list[login_index].time_str;
+				tmp.label = -1;
+				if(ip_detail_map.find(ip) == ip_detail_map.end()) {
+					unordered_set<ip_cnt, ip_hash> tmp_set;
+					tmp_set.insert(tmp);
+					ip_detail_map.insert(make_pair(ip, tmp_set));
+				}else {
+					map<string, unordered_set<ip_cnt, ip_hash> >::iterator ip_iter = ip_detail_map.find(ip);
+					unordered_set<ip_cnt, ip_hash> tmp_set = ip_iter->second;
+					tmp_set.insert(tmp);
+					ip_iter->second = tmp_set;
+				}
+			}
+			for(int id = 0; id < login_list[login_index].trade_vec.size(); id++) {
+				ip_cnt tmp;
+				tmp.user_id = login_list[login_index].user_id;
+				stringstream stream;
+				string result;
+				stream << login_list[login_index].trade_vec[id].time_stamp;
+				stream >> result;
+				time_t tick = (time_t)login_list[login_index].trade_vec[id].time_stamp; 
+				tm _tm = *localtime(&tick);
+				char s[100];
+				strftime(s, sizeof(s), "%Y-%m-%d %H:%M:%S", &_tm);
+				tmp.time_str = s;
+				tmp.label = login_list[login_index].trade_vec[id].label;
+				if(ip_detail_map.find(ip) == ip_detail_map.end()) {
+					unordered_set<ip_cnt, ip_hash> tmp_set;
+					tmp_set.insert(tmp);
+					ip_detail_map.insert(make_pair(ip, tmp_set));
+				}else {
+					map<string, unordered_set<ip_cnt, ip_hash> >::iterator ip_iter = ip_detail_map.find(ip);
+					unordered_set<ip_cnt, ip_hash> tmp_set = ip_iter->second;
+					tmp_set.insert(tmp);
+					ip_iter->second = tmp_set;
+				}
+			}
+		}
+	}
+
+	string ip_file = "ip_status_detail";
+	ofstream ip_out_file(ip_file.c_str());
+	string ip_file_log = "ip_status_detail_log";
+	ofstream ip_out_file_log(ip_file_log.c_str());
+	string ip_file_debug = "ip_status_detail_debug";
+	ofstream ip_out_file_debug(ip_file_debug.c_str());
+
+
+	for(map<string, unordered_set<ip_cnt, ip_hash> >::iterator ip_it = ip_detail_map.begin(); ip_it != ip_detail_map.end(); ip_it++) {
+		ip_out_file_log << "----------------------------------" << endl;
+		ip_out_file_log << ip_it->first << "------" << endl;
+		ip_out_file << ip_it->first << ": ";
+		vector<ip_cnt> tmp_vector;
+		for(unordered_set<ip_cnt, ip_hash>::iterator tmp_it = (ip_it->second).begin(); tmp_it != (ip_it->second).end(); tmp_it++) {
+			tmp_vector.push_back((*tmp_it));
+		}
+		sort(tmp_vector.begin(), tmp_vector.end(), ip_compare);
+		int ip_status1 = false;
+		int ip_status2 = false;
+		for(int idx = 0; idx < tmp_vector.size(); idx++) {
+			ip_out_file_log << "user id: " << tmp_vector[idx].user_id << ", time str " << tmp_vector[idx].time_str << ", label " << tmp_vector[idx].label << endl;
+			if(tmp_vector[idx].label >= 0)
+				ip_out_file << tmp_vector[idx].label;
+			if(tmp_vector[idx].label > 0)
+				ip_status1 = true;
+			if(tmp_vector[idx].time_str > "2015-07-00" && ip_status1) {
+				ip_out_file_debug << "user_id: " << tmp_vector[idx].user_id << " ip: " << ip_it->first << endl;
+				ip_status2 = true;
+			}
+		}
+		ip_out_file << " " << endl;
+	}
 
 	/*int pos_t1 = 0, pos_t2 = 0, neg_t1 = 0, neg_t2 = 0;
 	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
