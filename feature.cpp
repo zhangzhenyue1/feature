@@ -3220,6 +3220,7 @@ bool transfer_data2() {
 
 		//out_trade(current);
 		if(index < 0) {
+			out_trade(current);
 			map<string, int>::iterator it = user_trade_cnt_map.find(user_id);
 			trade_index = it->second;
 			it->second = trade_index + 1;
@@ -3234,7 +3235,7 @@ bool transfer_data2() {
 		login_it->second = login_list;
 		
 		part3_size++;
-		generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
+		//generate_sample(login_list, login_index - 1, index, user_id, login_list[index].trade_vec.size());
 		//update_trade_total_device_map(login_list[index], login_list[index].user_id);
 		//update_trade_total_ip_map(login_list[index], login_list[index].user_id);
 		//map<string, vector<login_data> > device_login_detail;
@@ -3368,7 +3369,7 @@ bool transfer_data2() {
 		device_log_from_log << endl;
 	}*/
 
-	map<string, unordered_set<device_cnt, device_hash> > device_detail_map;
+	/*map<string, unordered_set<device_cnt, device_hash> > device_detail_map;
 	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
 		vector<login_data> login_list = login_it->second;
 		cout << "begin new user --------------------------------------" << endl;
@@ -3423,9 +3424,9 @@ bool transfer_data2() {
 				}
 			}
 		}
-	}
+	}*/
 
-	string device_file = "device_status_detail";
+	/*string device_file = "device_status_detail";
 	ofstream device_out_file(device_file.c_str());
 	string device_file_log = "device_status_detail_log";
 	ofstream device_out_file_log(device_file_log.c_str());
@@ -3450,14 +3451,13 @@ bool transfer_data2() {
 				device_out_file << tmp_vector[idx].label;
 			if(tmp_vector[idx].label > 0)
 				device_status1 = true;
-			if(tmp_vector[idx].time_str > "2017-07-00")
+			if(tmp_vector[idx].time_str > "2015-07-00" && device_status1) {
+				device_out_file_debug << "user_id: " << tmp_vector[idx].user_id << " device: " << device_it->first << endl;
 				device_status2 = true;
-		}
-		if(device_status1 && device_status2) {
-			device_out_file_debug << "user_id: " << tmp_vector[0].user_id << " device: " << device_it->first << endl;
+			}
 		}
 		device_out_file << " " << endl;
-	}
+	}*/
 
 	/*int pos_t1 = 0, pos_t2 = 0, neg_t1 = 0, neg_t2 = 0;
 	for(map<string, vector<login_data> >::iterator login_it = total_login_vec.begin(); login_it != total_login_vec.end(); login_it++) {
